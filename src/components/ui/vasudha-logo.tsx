@@ -5,14 +5,12 @@ import { useTheme } from "next-themes";
 import { useState, useEffect, useId } from "react";
 import { cn } from "@/lib/utils";
 
-// All four logo PNGs share the same canvas dimensions after normalization:
-//   full    → 1536 × 393
-//   compact → 1536 × 273
-// This guarantees identical rendered widths for both themes at any given height.
+// All four logo PNGs share the same canvas after content-aware crop + normalisation.
+// Both themes render at identical pixel dimensions → zero layout shift on theme switch.
 
 const LOGO = {
-  full:    { w: 1536, h: 393 },
-  compact: { w: 1536, h: 273 },
+  full:    { w: 1422, h: 235 },
+  compact: { w: 1422, h: 235 },
 } as const;
 
 // ── Full wordmark logo ──────────────────────────────────────────────────────
