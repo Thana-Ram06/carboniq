@@ -9,8 +9,8 @@ import { cn } from "@/lib/utils";
 // Both themes render at identical pixel dimensions → zero layout shift on theme switch.
 
 const LOGO = {
-  full:    { w: 1422, h: 235 },
-  compact: { w: 1422, h: 235 },
+  full:    { w: 1370, h: 225 },
+  compact: { w: 1370, h: 225 },
 } as const;
 
 // ── Full wordmark logo ──────────────────────────────────────────────────────
