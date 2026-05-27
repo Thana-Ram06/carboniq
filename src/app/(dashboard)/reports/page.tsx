@@ -136,7 +136,7 @@ function ReportCard({
               </p>
 
               <div className="flex gap-2 mt-3">
-                <button className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-zinc-300 transition-colors">
+                <button className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors">
                   <Eye className="w-3.5 h-3.5" />
                   View
                 </button>
@@ -227,7 +227,7 @@ export default function ReportsPage() {
               className={`px-3.5 py-1.5 rounded-xl text-xs font-medium transition-all capitalize ${
                 filter === f
                   ? "bg-green-500/12 border border-green-500/25 text-green-300"
-                  : "text-muted-foreground/60 border border-transparent hover:border-border hover:text-zinc-400"
+                  : "text-muted-foreground/60 border border-transparent hover:border-border hover:text-foreground"
               }`}
             >
               {f === "all" ? "All Reports" : f}
@@ -255,9 +255,9 @@ export default function ReportsPage() {
       <div className="mt-8 p-4 rounded-2xl border border-border bg-card flex gap-3">
         <AlertCircle className="w-4 h-4 text-muted-foreground/50 flex-shrink-0 mt-0.5" />
         <p className="text-xs text-muted-foreground/60 leading-relaxed">
-          <span className="text-zinc-400 font-medium">PDF & CSV export</span>{" "}
+          <span className="text-foreground/80 font-medium">PDF & CSV export</span>{" "}
           and{" "}
-          <span className="text-zinc-400 font-medium">
+          <span className="text-foreground/80 font-medium">
             automated report generation
           </span>{" "}
           are in active development. Reports shown are demonstration data.

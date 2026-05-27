@@ -34,7 +34,7 @@ export function Badge({
     blue: "bg-blue-500/10 text-blue-400 border border-blue-500/20",
     purple:
       "bg-purple-500/10 text-purple-400 border border-purple-500/20",
-    gray: "bg-white/5 text-zinc-400 border border-white/10",
+    gray: "bg-muted text-muted-foreground border border-border",
     outline: "bg-transparent text-muted-foreground border border-border",
   };
 
@@ -50,8 +50,8 @@ export function Badge({
     red: "bg-red-400",
     blue: "bg-blue-400",
     purple: "bg-purple-400",
-    gray: "bg-zinc-400",
-    outline: "bg-zinc-400",
+    gray: "bg-muted-foreground",
+    outline: "bg-muted-foreground",
   };
 
   return (

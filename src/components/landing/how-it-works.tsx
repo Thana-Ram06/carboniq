@@ -65,7 +65,7 @@ export function HowItWorks() {
             <br />
             in four steps
           </h2>
-          <p className="text-zinc-400 text-lg max-w-xl mx-auto">
+          <p className="text-muted-foreground text-lg max-w-xl mx-auto">
             VASUDHA simplifies the complexity of agricultural carbon
             measurement into an intuitive workflow.
           </p>

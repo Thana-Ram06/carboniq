@@ -40,7 +40,7 @@ export function Footer() {
             <h3 className="font-instrument-serif text-3xl md:text-4xl text-foreground mb-4">
               Start monitoring your farms today
             </h3>
-            <p className="text-zinc-400 mb-8 leading-relaxed">
+            <p className="text-muted-foreground mb-8 leading-relaxed">
               Join hundreds of farmers and agri-tech companies using VASUDHA
               to understand and quantify their carbon impact.
             </p>
@@ -99,7 +99,7 @@ export function Footer() {
           {/* Link columns */}
           {Object.entries(LINKS).map(([group, links]) => (
             <div key={group}>
-              <h4 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-4">
+              <h4 className="text-xs font-semibold text-muted-foreground/60 uppercase tracking-wider mb-4">
                 {group}
               </h4>
               <ul className="flex flex-col gap-2.5">
@@ -107,7 +107,7 @@ export function Footer() {
                   <li key={link.label}>
                     <Link
                       href={link.href}
-                      className="text-sm text-zinc-500 hover:text-zinc-300 transition-colors"
+                      className="text-sm text-muted-foreground/70 hover:text-foreground transition-colors"
                     >
                       {link.label}
                     </Link>

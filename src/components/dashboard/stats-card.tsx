@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import type { LucideIcon } from "lucide-react";
-import { TrendingUp, TrendingDown, Minus } from "lucide-react";
+import { TrendingUp, TrendingDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface StatsCardProps {
@@ -20,38 +20,33 @@ interface StatsCardProps {
 const COLOR_MAP = {
   green: {
     icon: "text-green-400",
-    bg: "bg-green-500/8",
-    border: "border-green-500/15",
-    glow: "shadow-[0_0_20px_rgba(74,222,128,0.06)]",
-    badge: "text-green-400 bg-green-500/10",
+    iconBg: "bg-green-500/8 border-green-500/15",
+    badge: "text-green-400 bg-green-500/8",
+    accent: "rgba(74,222,128,0.06)",
   },
   emerald: {
     icon: "text-emerald-400",
-    bg: "bg-emerald-500/8",
-    border: "border-emerald-500/15",
-    glow: "shadow-[0_0_20px_rgba(52,211,153,0.06)]",
-    badge: "text-emerald-400 bg-emerald-500/10",
+    iconBg: "bg-emerald-500/8 border-emerald-500/15",
+    badge: "text-emerald-400 bg-emerald-500/8",
+    accent: "rgba(52,211,153,0.06)",
   },
   teal: {
     icon: "text-teal-400",
-    bg: "bg-teal-500/8",
-    border: "border-teal-500/15",
-    glow: "shadow-[0_0_20px_rgba(45,212,191,0.06)]",
-    badge: "text-teal-400 bg-teal-500/10",
+    iconBg: "bg-teal-500/8 border-teal-500/15",
+    badge: "text-teal-400 bg-teal-500/8",
+    accent: "rgba(45,212,191,0.06)",
   },
   yellow: {
     icon: "text-yellow-400",
-    bg: "bg-yellow-500/8",
-    border: "border-yellow-500/15",
-    glow: "",
-    badge: "text-yellow-400 bg-yellow-500/10",
+    iconBg: "bg-yellow-500/8 border-yellow-500/15",
+    badge: "text-yellow-400 bg-yellow-500/8",
+    accent: "rgba(234,179,8,0.06)",
   },
   blue: {
     icon: "text-blue-400",
-    bg: "bg-blue-500/8",
-    border: "border-blue-500/15",
-    glow: "",
-    badge: "text-blue-400 bg-blue-500/10",
+    iconBg: "bg-blue-500/8 border-blue-500/15",
+    badge: "text-blue-400 bg-blue-500/8",
+    accent: "rgba(59,130,246,0.06)",
   },
 };
 
@@ -60,7 +55,7 @@ export function StatsCard({
   value,
   unit,
   change,
-  changeLabel,
+  changeLabel = "vs last month",
   icon: Icon,
   color = "green",
   description,
@@ -72,38 +67,25 @@ export function StatsCard({
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 16 }}
+      initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{
-        duration: 0.5,
-        delay: index * 0.08,
-        ease: [0.16, 1, 0.3, 1],
-      }}
-      className={cn(
-        "relative p-5 rounded-2xl border border-border bg-card overflow-hidden transition-all duration-300 hover:border-green-500/18 group",
-        colors.glow
-      )}
+      transition={{ duration: 0.45, delay: index * 0.07, ease: [0.16, 1, 0.3, 1] }}
+      className="relative p-5 rounded-2xl border border-border bg-card overflow-hidden group hover:border-green-500/20 transition-all duration-300 hover:shadow-[0_4px_24px_rgba(0,0,0,0.08)]"
     >
-      {/* Icon */}
+      {/* Top row: icon + change badge */}
       <div className="flex items-center justify-between mb-4">
-        <div
-          className={cn(
-            "w-9 h-9 rounded-xl flex items-center justify-center border",
-            colors.bg,
-            colors.border
-          )}
-        >
-          <Icon className={cn("w-4.5 h-4.5", colors.icon)} />
+        <div className={cn("w-9 h-9 rounded-xl flex items-center justify-center border", colors.iconBg)}>
+          <Icon className={cn("w-4 h-4", colors.icon)} />
         </div>
 
         {change !== undefined && (
           <div
             className={cn(
-              "flex items-center gap-1 text-xs px-2 py-1 rounded-lg font-medium",
+              "flex items-center gap-1 text-xs px-2 py-0.5 rounded-full font-medium",
               isPositive
-                ? "text-green-400 bg-green-500/10"
+                ? "text-green-400 bg-green-500/8"
                 : isNegative
-                ? "text-red-400 bg-red-500/10"
+                ? "text-red-400 bg-red-500/8"
                 : "text-muted-foreground bg-muted"
             )}
           >
@@ -111,39 +93,40 @@ export function StatsCard({
               <TrendingUp className="w-3 h-3" />
             ) : isNegative ? (
               <TrendingDown className="w-3 h-3" />
-            ) : (
-              <Minus className="w-3 h-3" />
-            )}
-            {Math.abs(change)}%
+            ) : null}
+            {isPositive ? "+" : ""}
+            {change}%
           </div>
         )}
       </div>
 
       {/* Value */}
-      <div className="mb-1">
-        <span className="text-2xl font-bold text-foreground tracking-tight">
+      <div className="mb-1 flex items-baseline gap-1.5">
+        <span className="text-2xl font-bold text-foreground tracking-tight leading-none">
           {value}
         </span>
         {unit && (
-          <span className="text-sm text-muted-foreground ml-1.5 font-medium">
-            {unit}
-          </span>
+          <span className="text-sm text-muted-foreground font-normal">{unit}</span>
         )}
       </div>
 
       {/* Label */}
-      <p className="text-xs text-muted-foreground font-medium">{title}</p>
+      <p className="text-xs font-medium text-muted-foreground">{title}</p>
 
-      {description && (
-        <p className="text-xs text-muted-foreground/70 mt-1.5">{description}</p>
+      {/* Sub-text */}
+      {(description || (change !== undefined && changeLabel)) && (
+        <p className="text-xs text-muted-foreground/50 mt-1.5">
+          {description ?? changeLabel}
+        </p>
       )}
 
-      {changeLabel && (
-        <p className="text-xs text-muted-foreground/70 mt-1">{changeLabel}</p>
-      )}
-
-      {/* Background shimmer on hover */}
-      <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none bg-[radial-gradient(ellipse_at_top_right,rgba(74,222,128,0.03),transparent_60%)]" />
+      {/* Hover glow */}
+      <div
+        className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
+        style={{
+          background: `radial-gradient(ellipse at top right, ${colors.accent}, transparent 70%)`,
+        }}
+      />
     </motion.div>
   );
 }

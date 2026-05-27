@@ -71,12 +71,12 @@ export function CarbonScoreChart({ data, className }: CarbonScoreChartProps) {
           />
           <XAxis
             dataKey="month"
-            tick={{ fill: "#4b5563", fontSize: 11 }}
+            tick={{ fontSize: 11 }}
             axisLine={false}
             tickLine={false}
           />
           <YAxis
-            tick={{ fill: "#4b5563", fontSize: 11 }}
+            tick={{ fontSize: 11 }}
             axisLine={false}
             tickLine={false}
           />
@@ -127,12 +127,12 @@ export function NDVIChart({ data, className }: NDVIChartProps) {
           />
           <XAxis
             dataKey="month"
-            tick={{ fill: "#4b5563", fontSize: 11 }}
+            tick={{ fontSize: 11 }}
             axisLine={false}
             tickLine={false}
           />
           <YAxis
-            tick={{ fill: "#4b5563", fontSize: 11 }}
+            tick={{ fontSize: 11 }}
             axisLine={false}
             tickLine={false}
             domain={[0, 1]}
@@ -186,12 +186,12 @@ export function CarbonBreakdownChart({
           />
           <XAxis
             dataKey="name"
-            tick={{ fill: "#4b5563", fontSize: 10 }}
+            tick={{ fontSize: 10 }}
             axisLine={false}
             tickLine={false}
           />
           <YAxis
-            tick={{ fill: "#4b5563", fontSize: 10 }}
+            tick={{ fontSize: 10 }}
             axisLine={false}
             tickLine={false}
           />

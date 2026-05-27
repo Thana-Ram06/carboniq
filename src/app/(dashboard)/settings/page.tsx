@@ -285,7 +285,7 @@ export default function SettingsPage() {
                 description={item.description}
                 badge={item.badge}
                 action={
-                  <ChevronRight className="w-4 h-4 text-zinc-700 flex-shrink-0" />
+                  <ChevronRight className="w-4 h-4 text-muted-foreground/50 flex-shrink-0" />
                 }
               />
             ))}

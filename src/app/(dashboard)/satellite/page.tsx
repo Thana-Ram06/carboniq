@@ -119,7 +119,7 @@ export default function SatellitePage() {
             className={`flex items-center gap-2 px-4 py-2 rounded-xl border text-sm font-medium transition-all ${
               selectedBand === band.label
                 ? "bg-green-500/12 border-green-500/30 text-green-300"
-                : "bg-card border-border text-muted-foreground hover:border-green-500/20 hover:text-zinc-300"
+                : "bg-card border-border text-muted-foreground hover:border-green-500/20 hover:text-foreground"
             }`}
           >
             <Layers className="w-3.5 h-3.5" />
@@ -212,7 +212,7 @@ export default function SatellitePage() {
                     className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
                       t === "30d"
                         ? "bg-green-500/12 border border-green-500/25 text-green-300"
-                        : "text-muted-foreground/60 hover:text-zinc-400 border border-transparent hover:border-border"
+                        : "text-muted-foreground/60 hover:text-foreground border border-transparent hover:border-border"
                     }`}
                   >
                     {t}
@@ -256,8 +256,8 @@ export default function SatellitePage() {
               label: "Cloud Coverage",
               value: "3%",
               status: "Clear",
-              color: "text-zinc-400",
-              bg: "bg-zinc-500/8",
+              color: "text-muted-foreground",
+              bg: "bg-muted",
             },
           ].map((item) => {
             const Icon = item.icon;
@@ -302,7 +302,7 @@ export default function SatellitePage() {
                     className="flex flex-col gap-1.5"
                   >
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-zinc-300 font-medium truncate max-w-[200px]">
+                      <span className="text-sm text-foreground font-medium truncate max-w-[200px]">
                         {farm.name}
                       </span>
                       <Badge

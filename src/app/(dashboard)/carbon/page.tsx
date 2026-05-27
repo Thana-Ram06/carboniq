@@ -319,7 +319,7 @@ export default function CarbonPage() {
                 <div className="w-16 h-16 rounded-3xl bg-green-500/10 border border-green-500/20 flex items-center justify-center animate-pulse">
                   <BarChart3 className="w-7 h-7 text-green-400" />
                 </div>
-                <p className="text-sm text-zinc-400">
+                <p className="text-sm text-muted-foreground">
                   Running IPCC Tier 1 estimation...
                 </p>
               </motion.div>

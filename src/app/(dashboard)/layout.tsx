@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Sidebar } from "@/components/dashboard/sidebar";
 import { Header } from "@/components/dashboard/header";
 import { useAuth } from "@/hooks/use-auth";
-import { Leaf } from "lucide-react";
+import Image from "next/image";
 
 export default function DashboardLayout({
   children,
@@ -14,6 +14,7 @@ export default function DashboardLayout({
 }) {
   const { user, loading } = useAuth();
   const router = useRouter();
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -21,18 +22,30 @@ export default function DashboardLayout({
     }
   }, [user, loading, router]);
 
+  // Close mobile drawer on route change
+  useEffect(() => {
+    setMobileOpen(false);
+  }, []);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-green-500/10 border border-green-500/20 flex items-center justify-center animate-pulse">
-            <Leaf className="w-6 h-6 text-green-400" />
+        <div className="flex flex-col items-center gap-6">
+          <div className="dark:bg-white dark:rounded-xl dark:px-3 dark:py-2">
+            <Image
+              src="/images/vasudha-logo.png"
+              alt="VASUDHA"
+              width={160}
+              height={54}
+              className="object-contain h-11 w-auto animate-pulse"
+              priority
+            />
           </div>
-          <div className="flex gap-1">
+          <div className="flex gap-1.5">
             {[0, 1, 2].map((i) => (
               <div
                 key={i}
-                className="w-1.5 h-1.5 rounded-full bg-green-500/40 animate-bounce"
+                className="w-1.5 h-1.5 rounded-full bg-green-500/50 animate-bounce"
                 style={{ animationDelay: `${i * 0.15}s` }}
               />
             ))}
@@ -46,11 +59,20 @@ export default function DashboardLayout({
 
   return (
     <div className="flex h-screen bg-background overflow-hidden">
-      <Sidebar />
-      <div className="flex flex-col flex-1 overflow-hidden">
-        <Header />
+      {/* Mobile backdrop */}
+      {mobileOpen && (
+        <div
+          className="fixed inset-0 z-30 bg-black/60 backdrop-blur-sm md:hidden"
+          onClick={() => setMobileOpen(false)}
+        />
+      )}
+
+      <Sidebar mobileOpen={mobileOpen} onClose={() => setMobileOpen(false)} />
+
+      <div className="flex flex-col flex-1 overflow-hidden min-w-0">
+        <Header onMenuClick={() => setMobileOpen((v) => !v)} />
         <main className="flex-1 overflow-y-auto">
-          <div className="p-6">{children}</div>
+          <div className="p-4 md:p-6 max-w-screen-2xl">{children}</div>
         </main>
       </div>
     </div>

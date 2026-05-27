@@ -111,14 +111,14 @@ function FarmCard({
             <div className="relative">
               <button
                 onClick={() => setMenuOpen(!menuOpen)}
-                className="w-7 h-7 rounded-lg flex items-center justify-center text-muted-foreground/60 hover:text-zinc-400 hover:bg-white/5 transition-all"
+                className="w-7 h-7 rounded-lg flex items-center justify-center text-muted-foreground/60 hover:text-foreground hover:bg-foreground/5 transition-all"
               >
                 <MoreVertical className="w-3.5 h-3.5" />
               </button>
               {menuOpen && (
                 <div className="absolute right-0 top-8 z-10 w-36 bg-card border border-border rounded-xl shadow-xl overflow-hidden">
                   <Link href={`/farms/${farm.id}`}>
-                    <button className="w-full flex items-center gap-2 px-3 py-2.5 text-xs text-zinc-400 hover:text-foreground hover:bg-white/5 transition-colors">
+                    <button className="w-full flex items-center gap-2 px-3 py-2.5 text-xs text-muted-foreground hover:text-foreground hover:bg-foreground/5 transition-colors">
                       <Eye className="w-3.5 h-3.5" /> View Details
                     </button>
                   </Link>
@@ -388,7 +388,7 @@ export default function FarmsPage() {
           ))}
           <button
             onClick={() => setShowForm(true)}
-            className="h-[180px] rounded-2xl border-2 border-dashed border-border hover:border-green-500/25 flex flex-col items-center justify-center gap-2 text-muted-foreground/60 hover:text-zinc-400 transition-all group"
+            className="h-[180px] rounded-2xl border-2 border-dashed border-border hover:border-green-500/25 flex flex-col items-center justify-center gap-2 text-muted-foreground/60 hover:text-muted-foreground transition-all group"
           >
             <div className="w-10 h-10 rounded-xl bg-muted group-hover:bg-green-500/8 border border-border group-hover:border-green-500/20 flex items-center justify-center transition-all">
               <Plus className="w-5 h-5" />

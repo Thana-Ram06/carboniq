@@ -128,7 +128,7 @@ export function Features() {
             Everything you need to{" "}
             <span className="text-gradient">quantify carbon impact</span>
           </h2>
-          <p className="text-zinc-400 text-lg max-w-xl mx-auto leading-relaxed">
+          <p className="text-muted-foreground text-lg max-w-xl mx-auto leading-relaxed">
             A complete intelligence platform for monitoring agricultural carbon
             across India&apos;s diverse farming landscape.
           </p>
