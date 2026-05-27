@@ -56,7 +56,6 @@ export function VasudhaLogo({
 }: VasudhaLogoProps) {
   const { resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
-  // Unique per-instance prefix so multiple logos on the same page don't clash
   const uid = useId().replace(/:/g, "");
 
   useEffect(() => setMounted(true), []);
@@ -65,8 +64,8 @@ export function VasudhaLogo({
     ? forceTheme === "dark"
     : !mounted || resolvedTheme === "dark";
   const c = isDark ? DARK : LIGHT;
+  const shadowColor = isDark ? "rgba(0,0,0,0.5)" : "rgba(0,0,0,0.12)";
 
-  // viewBox height grows when tagline is shown
   const vh = tagline ? 106 : 76;
 
   return (
@@ -85,12 +84,22 @@ export function VasudhaLogo({
           <stop offset="100%" stopColor={c.leaf2} />
         </linearGradient>
 
-        {/* Wordmark gradient — subtle teal shift on the right edge */}
-        <linearGradient id={`${uid}text`} x1="0" y1="0" x2="1" y2="0">
+        {/* Wordmark gradient — vertical for 3-D depth */}
+        <linearGradient id={`${uid}text`} x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%"  stopColor={c.text} />
-          <stop offset="78%" stopColor={c.text} />
           <stop offset="100%" stopColor={c.textEnd} />
         </linearGradient>
+
+        {/* Subtle text drop-shadow */}
+        <filter id={`${uid}shadow`}>
+          <feDropShadow
+            dx="0"
+            dy="1.5"
+            stdDeviation="1.5"
+            floodColor={shadowColor}
+            floodOpacity="1"
+          />
+        </filter>
       </defs>
 
       {/* ── Satellite orbit arc ───────────────────────────────────────────── */}
@@ -161,26 +170,27 @@ export function VasudhaLogo({
         x="196"
         y="71"
         textAnchor="middle"
-        fontFamily="'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+        fontFamily="'Montserrat', 'Inter', system-ui, sans-serif"
         fontWeight="900"
         fontSize="57"
         letterSpacing="-1.5"
         fill={`url(#${uid}text)`}
+        filter={`url(#${uid}shadow)`}
       >
         VASUDHA
       </text>
 
-      {/* ── Globe (right, last-A area) ────────────────────────────────────── */}
+      {/* ── Globe (center-right, U–D area) ───────────────────────────────── */}
       {/* Ambient glow */}
-      <circle cx="350" cy="49" r="12" fill={c.globe} opacity="0.07" />
+      <circle cx="238" cy="48" r="12" fill={c.globe} opacity="0.07" />
       {/* Outer ring */}
-      <circle cx="350" cy="49" r="9.5" fill="none" stroke={c.globe} strokeWidth="1.35" opacity="0.72" />
+      <circle cx="238" cy="48" r="9.5" fill="none" stroke={c.globe} strokeWidth="1.35" opacity="0.72" />
       {/* Equatorial ellipse */}
-      <ellipse cx="350" cy="49" rx="9.5" ry="5" fill="none" stroke={c.globeInner} strokeWidth="0.75" opacity="0.48" />
+      <ellipse cx="238" cy="48" rx="9.5" ry="5" fill="none" stroke={c.globeInner} strokeWidth="0.75" opacity="0.48" />
       {/* Prime meridian arc */}
-      <path d="M 350 39.5 Q 353.5 49 350 58.5" fill="none" stroke={c.globeInner} strokeWidth="0.75" opacity="0.48" />
+      <path d="M 238 38.5 Q 241.5 48 238 57.5" fill="none" stroke={c.globeInner} strokeWidth="0.75" opacity="0.48" />
       {/* Equatorial highlight */}
-      <path d="M 340.5 49 Q 350 45.5 359.5 49" fill="none" stroke={c.globe} strokeWidth="0.9" opacity="0.33" />
+      <path d="M 228.5 48 Q 238 44.5 247.5 48" fill="none" stroke={c.globe} strokeWidth="0.9" opacity="0.33" />
 
       {/* ── Tagline ───────────────────────────────────────────────────────── */}
       {tagline && (
@@ -281,7 +291,7 @@ export function VasudhaIcon({
         x="19"
         y="26"
         textAnchor="middle"
-        fontFamily="'Inter', system-ui, sans-serif"
+        fontFamily="'Montserrat', 'Inter', system-ui, sans-serif"
         fontWeight="900"
         fontSize="13"
         fill={isDark ? "rgba(236,253,245,0.88)" : "rgba(12,59,59,0.88)"}
