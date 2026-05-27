@@ -16,6 +16,8 @@ import { getFirebaseDb, COLLECTIONS } from "./firebase";
 import type {
   Farm,
   CreateFarmInput,
+  FarmBoundary,
+  FarmBoundaryRecord,
   CarbonEstimation,
   SatelliteAnalytics,
   Report,
@@ -74,6 +76,79 @@ export async function updateFarm(
 
 export async function deleteFarm(farmId: string): Promise<void> {
   await deleteDoc(doc(db(), COLLECTIONS.FARMS, farmId));
+  // Best-effort boundary cleanup
+  try {
+    await deleteFarmBoundary(farmId);
+  } catch {
+    // Boundary may not exist — ignore
+  }
+}
+
+// ──────────────────────────────────────────
+// FARM BOUNDARIES
+// ──────────────────────────────────────────
+
+export async function saveFarmBoundary(
+  farmId: string,
+  userId: string,
+  boundary: FarmBoundary,
+  areaHectares: number
+): Promise<void> {
+  const col = collection(db(), COLLECTIONS.FARM_BOUNDARIES);
+  const q = query(col, where("farmId", "==", farmId));
+  const snap = await getDocs(q);
+
+  const vertexCount =
+    boundary.coordinates[0]?.length
+      ? boundary.coordinates[0].length - 1 // last point is duplicate of first
+      : 0;
+
+  if (!snap.empty) {
+    await updateDoc(snap.docs[0].ref, {
+      boundary,
+      areaHectares,
+      vertexCount,
+      updatedAt: serverTimestamp(),
+    });
+  } else {
+    await addDoc(col, {
+      farmId,
+      userId,
+      boundary,
+      areaHectares,
+      vertexCount,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    });
+  }
+
+  // Also persist inline on the farm doc for fast reads
+  await updateDoc(doc(db(), COLLECTIONS.FARMS, farmId), {
+    boundary,
+    areaHectares,
+    updatedAt: serverTimestamp(),
+  });
+}
+
+export async function getFarmBoundary(
+  farmId: string
+): Promise<FarmBoundaryRecord | null> {
+  const q = query(
+    collection(db(), COLLECTIONS.FARM_BOUNDARIES),
+    where("farmId", "==", farmId)
+  );
+  const snap = await getDocs(q);
+  if (snap.empty) return null;
+  return { id: snap.docs[0].id, ...snap.docs[0].data() } as FarmBoundaryRecord;
+}
+
+export async function deleteFarmBoundary(farmId: string): Promise<void> {
+  const q = query(
+    collection(db(), COLLECTIONS.FARM_BOUNDARIES),
+    where("farmId", "==", farmId)
+  );
+  const snap = await getDocs(q);
+  await Promise.all(snap.docs.map((d) => deleteDoc(d.ref)));
 }
 
 // ──────────────────────────────────────────

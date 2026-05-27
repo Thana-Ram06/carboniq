@@ -54,13 +54,24 @@ export interface FarmBoundary {
   coordinates: number[][][];
 }
 
+export type SoilType =
+  | "alluvial"
+  | "black"
+  | "red"
+  | "laterite"
+  | "desert"
+  | "mountain"
+  | "other";
+
 export interface Farm {
   id: string;
   userId: string;
   name: string;
+  farmerName?: string;
   location: string;
   state: string;
   district: string;
+  village?: string;
   cropType: CropType;
   areaHectares: number;
   irrigationType: IrrigationType;
@@ -75,9 +86,11 @@ export interface Farm {
 
 export interface CreateFarmInput {
   name: string;
+  farmerName?: string;
   location: string;
   state: string;
   district: string;
+  village?: string;
   cropType: CropType;
   areaHectares: number;
   irrigationType: IrrigationType;
@@ -85,6 +98,17 @@ export interface CreateFarmInput {
   coordinates: GeoPoint;
   boundary?: FarmBoundary;
   notes?: string;
+}
+
+export interface FarmBoundaryRecord {
+  id: string;
+  farmId: string;
+  userId: string;
+  boundary: FarmBoundary;
+  areaHectares: number;
+  vertexCount: number;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
 }
 
 // ──────────────────────────────────────────
