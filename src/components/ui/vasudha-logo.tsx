@@ -5,19 +5,21 @@ import { useTheme } from "next-themes";
 import { useState, useEffect, useId } from "react";
 import { cn } from "@/lib/utils";
 
-// Natural pixel dimensions of each exported PNG
-const DIMS = {
-  lightFull:    { src: "/logo-light.png",          w: 1536, h: 393 },
-  lightCompact: { src: "/logo-light-compact.png",   w: 1536, h: 273 },
-  darkFull:     { src: "/logo-dark.png",            w: 1259, h: 270 },
-  darkCompact:  { src: "/logo-dark-compact.png",    w: 1259, h: 211 },
+// All four logo PNGs share the same canvas dimensions after normalization:
+//   full    → 1536 × 393
+//   compact → 1536 × 273
+// This guarantees identical rendered widths for both themes at any given height.
+
+const LOGO = {
+  full:    { w: 1536, h: 393 },
+  compact: { w: 1536, h: 273 },
 } as const;
 
 // ── Full wordmark logo ──────────────────────────────────────────────────────
 
 export interface VasudhaLogoProps {
   className?: string;
-  /** Rendered height in px — width scales automatically */
+  /** Rendered height in px — width scales proportionally (same for both themes) */
   height?: number;
   /** Show the tagline beneath the wordmark (default true) */
   tagline?: boolean;
@@ -40,35 +42,38 @@ export function VasudhaLogo({
     ? forceTheme === "dark"
     : !mounted || resolvedTheme === "dark";
 
-  const dim = isDark
-    ? (tagline ? DIMS.darkFull    : DIMS.darkCompact)
-    : (tagline ? DIMS.lightFull   : DIMS.lightCompact);
+  const variant = tagline ? "full" : "compact";
+  const { w, h } = LOGO[variant];
 
-  const renderedW = Math.round(height * dim.w / dim.h);
+  const src = isDark
+    ? `/logo-dark${tagline ? "" : "-compact"}.png`
+    : `/logo-light${tagline ? "" : "-compact"}.png`;
+
+  // Derived rendered width — identical for both themes since canvases are the same size
+  const renderedW = Math.round(height * w / h);
 
   return (
-    <Image
-      src={dim.src}
-      alt="VASUDHA"
-      width={dim.w}
-      height={dim.h}
-      style={{ height, width: renderedW }}
-      className={cn("shrink-0 select-none", className)}
-      priority
-    />
+    // Fixed-size wrapper prevents any layout shift between themes
+    <div
+      style={{ width: renderedW, height, flexShrink: 0 }}
+      className={cn("relative overflow-hidden select-none", className)}
+    >
+      <Image
+        src={src}
+        alt="VASUDHA"
+        fill
+        sizes={`${renderedW}px`}
+        style={{ objectFit: "contain", objectPosition: "center" }}
+        priority
+      />
+    </div>
   );
 }
 
 // ── Icon-only variant — SVG leaf + V for collapsed sidebar / favicon ────────
 
-const ICON_LIGHT = {
-  leaf1: "#22c55e", leaf2: "#15803d", leafVein: "#166534",
-  text: "rgba(12,59,59,0.88)",
-};
-const ICON_DARK = {
-  leaf1: "#4ade80", leaf2: "#22c55e", leafVein: "#16a34a",
-  text: "rgba(236,253,245,0.88)",
-};
+const ICON_LIGHT = { leaf1: "#22c55e", leaf2: "#15803d", leafVein: "#166534" };
+const ICON_DARK  = { leaf1: "#4ade80", leaf2: "#22c55e", leafVein: "#16a34a" };
 
 export interface VasudhaIconProps {
   className?: string;
@@ -113,7 +118,6 @@ export function VasudhaIcon({
         cx="16" cy="16" r="15"
         fill={isDark ? "rgba(74,222,128,0.07)" : "rgba(22,163,74,0.07)"}
       />
-
       <path
         d="M 14 28 C 8 22, 3 14, 6 7 C 8 2, 16 0, 21 5 C 26 10, 24 19, 19 24 L 14 28 Z"
         fill={`url(#${uid}ig)`}
@@ -127,14 +131,13 @@ export function VasudhaIcon({
         opacity="0.40"
         strokeLinecap="round"
       />
-
       <text
         x="19" y="26"
         textAnchor="middle"
         fontFamily="'Montserrat', 'Inter', system-ui, sans-serif"
         fontWeight="900"
         fontSize="13"
-        fill={c.text}
+        fill={isDark ? "rgba(236,253,245,0.88)" : "rgba(12,59,59,0.88)"}
       >
         V
       </text>
