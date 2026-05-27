@@ -1,6 +1,6 @@
 import Link from "next/link";
-import Image from "next/image";
 import { Github, Twitter, Linkedin } from "lucide-react";
+import { VasudhaLogo } from "@/components/ui/vasudha-logo";
 
 const LINKS = {
   Product: [
@@ -66,15 +66,7 @@ export function Footer() {
           {/* Brand */}
           <div className="col-span-2 md:col-span-1">
             <Link href="/" className="flex items-center mb-4 group">
-              <div className="dark:bg-white dark:rounded-lg dark:px-1.5 dark:py-1">
-                <Image
-                  src="/images/vasudha-logo.png"
-                  alt="VASUDHA"
-                  width={120}
-                  height={40}
-                  className="object-contain h-9 w-auto"
-                />
-              </div>
+              <VasudhaLogo height={36} tagline={false} />
             </Link>
             <p className="text-xs text-muted-foreground/60 leading-relaxed mb-5">
               Earth Intelligence for a Sustainable Future.

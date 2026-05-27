@@ -11,16 +11,15 @@ import {
   BarChart3,
   FileText,
   Settings,
-  Leaf,
   ChevronLeft,
   ChevronRight,
   LogOut,
   HelpCircle,
   X,
 } from "lucide-react";
+import { VasudhaLogo, VasudhaIcon } from "@/components/ui/vasudha-logo";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/use-auth";
-import NextImage from "next/image";
 
 const NAV_ITEMS = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
@@ -101,20 +100,9 @@ export function Sidebar({ mobileOpen = false, onClose }: SidebarProps) {
         )}
       >
         {collapsed && !mobileOpen ? (
-          <div className="w-8 h-8 flex-shrink-0 rounded-lg bg-green-500/10 border border-green-500/20 flex items-center justify-center">
-            <Leaf className="w-4 h-4 text-green-400" />
-          </div>
+          <VasudhaIcon size={28} />
         ) : (
-          <div className="dark:bg-white dark:rounded-md dark:px-1.5 dark:py-0.5 flex-shrink-0">
-            <NextImage
-              src="/images/vasudha-logo.png"
-              alt="VASUDHA"
-              width={120}
-              height={40}
-              className="object-contain h-7 w-auto"
-              priority
-            />
-          </div>
+          <VasudhaLogo height={28} tagline={false} />
         )}
         {/* Mobile close button */}
         {mobileOpen && (

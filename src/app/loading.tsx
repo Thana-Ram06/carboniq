@@ -1,19 +1,12 @@
-import Image from "next/image";
+"use client";
+
+import { VasudhaLogo } from "@/components/ui/vasudha-logo";
 
 export default function Loading() {
   return (
     <div className="min-h-screen bg-background flex items-center justify-center">
       <div className="flex flex-col items-center gap-6">
-        <div className="dark:bg-white dark:rounded-xl dark:px-3 dark:py-2">
-          <Image
-            src="/images/vasudha-logo.png"
-            alt="VASUDHA"
-            width={180}
-            height={60}
-            className="object-contain h-12 w-auto animate-pulse"
-            priority
-          />
-        </div>
+        <VasudhaLogo height={44} tagline={false} className="opacity-80 animate-pulse" />
         <div className="flex gap-1.5">
           {[0, 1, 2].map((i) => (
             <div

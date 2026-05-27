@@ -1,21 +1,15 @@
+"use client";
+
 import Link from "next/link";
-import Image from "next/image";
 import { ArrowLeft } from "lucide-react";
+import { VasudhaLogo } from "@/components/ui/vasudha-logo";
 
 export default function NotFound() {
   return (
     <div className="min-h-screen bg-background flex items-center justify-center px-6">
       <div className="text-center max-w-md">
         <div className="flex justify-center mb-8">
-          <div className="dark:bg-white dark:rounded-xl dark:px-3 dark:py-2">
-            <Image
-              src="/images/vasudha-logo.png"
-              alt="VASUDHA"
-              width={160}
-              height={54}
-              className="object-contain h-11 w-auto"
-            />
-          </div>
+          <VasudhaLogo height={40} tagline={false} />
         </div>
         <h1 className="font-instrument-serif text-5xl text-foreground mb-3">404</h1>
         <p className="text-muted-foreground mb-8">

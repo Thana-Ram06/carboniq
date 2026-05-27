@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Sidebar } from "@/components/dashboard/sidebar";
 import { Header } from "@/components/dashboard/header";
 import { useAuth } from "@/hooks/use-auth";
-import Image from "next/image";
+import { VasudhaLogo } from "@/components/ui/vasudha-logo";
 
 export default function DashboardLayout({
   children,
@@ -31,16 +31,7 @@ export default function DashboardLayout({
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="flex flex-col items-center gap-6">
-          <div className="dark:bg-white dark:rounded-xl dark:px-3 dark:py-2">
-            <Image
-              src="/images/vasudha-logo.png"
-              alt="VASUDHA"
-              width={160}
-              height={54}
-              className="object-contain h-11 w-auto animate-pulse"
-              priority
-            />
-          </div>
+          <VasudhaLogo height={44} tagline={false} className="opacity-80 animate-pulse" />
           <div className="flex gap-1.5">
             {[0, 1, 2].map((i) => (
               <div

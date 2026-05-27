@@ -7,8 +7,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Eye, EyeOff, ArrowRight, Mail } from "lucide-react";
-import Image from "next/image";
 import { motion } from "framer-motion";
+import { VasudhaLogo } from "@/components/ui/vasudha-logo";
 import { useAuth } from "@/contexts/auth-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -112,14 +112,7 @@ export default function LoginPage() {
         <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-gradient-radial from-green-500/6 to-transparent blur-3xl" />
 
         <Link href="/" className="relative flex items-center mb-16">
-          <Image
-            src="/images/vasudha-logo.png"
-            alt="VASUDHA — Earth Intelligence for a Sustainable Future"
-            width={180}
-            height={60}
-            className="object-contain h-12 w-auto"
-            priority
-          />
+          <VasudhaLogo height={44} tagline={false} />
         </Link>
 
         <div className="relative flex-1 flex flex-col justify-center max-w-sm">
@@ -163,15 +156,7 @@ export default function LoginPage() {
         >
           {/* Mobile logo */}
           <Link href="/" className="lg:hidden flex items-center mb-8">
-            <div className="dark:bg-white dark:rounded-lg dark:px-2 dark:py-1">
-              <Image
-                src="/images/vasudha-logo.png"
-                alt="VASUDHA"
-                width={150}
-                height={50}
-                className="object-contain h-10 w-auto"
-              />
-            </div>
+            <VasudhaLogo height={36} tagline={false} />
           </Link>
 
           {mode === "signin" && (
