@@ -1,17 +1,24 @@
-import { Leaf } from "lucide-react";
+import Image from "next/image";
 
 export default function Loading() {
   return (
     <div className="min-h-screen bg-background flex items-center justify-center">
-      <div className="flex flex-col items-center gap-4">
-        <div className="w-12 h-12 rounded-2xl bg-green-500/10 border border-green-500/20 flex items-center justify-center animate-pulse">
-          <Leaf className="w-6 h-6 text-green-400" />
+      <div className="flex flex-col items-center gap-6">
+        <div className="dark:bg-white dark:rounded-xl dark:px-3 dark:py-2">
+          <Image
+            src="/images/vasudha-logo.png"
+            alt="VASUDHA"
+            width={180}
+            height={60}
+            className="object-contain h-12 w-auto animate-pulse"
+            priority
+          />
         </div>
-        <div className="flex gap-1">
+        <div className="flex gap-1.5">
           {[0, 1, 2].map((i) => (
             <div
               key={i}
-              className="w-1.5 h-1.5 rounded-full bg-green-500/40 animate-bounce"
+              className="w-1.5 h-1.5 rounded-full bg-green-500/60 animate-bounce"
               style={{ animationDelay: `${i * 0.15}s` }}
             />
           ))}

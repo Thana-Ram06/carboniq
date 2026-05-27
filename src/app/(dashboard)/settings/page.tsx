@@ -256,7 +256,7 @@ export default function SettingsPage() {
               {
                 icon: Key,
                 label: "API Key",
-                description: "Manage your CarbonIQ API access token",
+                description: "Manage your VasudhaCarbon API access token",
                 badge: <Badge variant="gray" size="sm">Coming Soon</Badge>,
               },
               {
@@ -301,7 +301,7 @@ export default function SettingsPage() {
             <SettingRow
               icon={LogOut}
               label="Sign Out"
-              description="Sign out of your CarbonIQ account"
+              description="Sign out of your VasudhaCarbon account"
               action={
                 <Button
                   variant="destructive"

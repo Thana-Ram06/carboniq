@@ -68,17 +68,25 @@ export function Sidebar() {
       {/* Logo */}
       <div
         className={cn(
-          "flex items-center h-16 px-4 border-b border-border",
-          collapsed ? "justify-center" : "gap-2.5"
+          "flex items-center h-16 px-3 border-b border-border",
+          collapsed ? "justify-center" : ""
         )}
       >
-        <div className="w-8 h-8 flex-shrink-0 rounded-lg bg-green-500/10 border border-green-500/20 flex items-center justify-center">
-          <Leaf className="w-4 h-4 text-green-400" />
-        </div>
-        {!collapsed && (
-          <span className="font-semibold text-foreground text-sm">
-            Carbon<span className="text-green-400">IQ</span>
-          </span>
+        {collapsed ? (
+          <div className="w-8 h-8 flex-shrink-0 rounded-lg bg-green-500/10 border border-green-500/20 flex items-center justify-center">
+            <Leaf className="w-4 h-4 text-green-400" />
+          </div>
+        ) : (
+          <div className="dark:bg-white dark:rounded-md dark:px-1.5 dark:py-0.5">
+            <Image
+              src="/images/vasudha-logo.png"
+              alt="VASUDHA"
+              width={130}
+              height={44}
+              className="object-contain h-8 w-auto"
+              priority
+            />
+          </div>
         )}
       </div>
 

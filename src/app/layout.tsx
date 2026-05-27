@@ -6,12 +6,14 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: {
-    default: "CarbonIQ — AI Agricultural Carbon Intelligence",
-    template: "%s | CarbonIQ",
+    default: "VasudhaCarbon — Earth Intelligence Platform",
+    template: "%s | VasudhaCarbon",
   },
   description:
-    "Monitor crops, estimate carbon impact, and prepare verification-ready agricultural insights using satellite intelligence and AI.",
+    "VASUDHA — Earth Intelligence for a Sustainable Future. Monitor crops via satellite, estimate carbon impact, and prepare verification-ready agricultural insights using AI.",
   keywords: [
+    "VasudhaCarbon",
+    "VASUDHA",
     "carbon intelligence",
     "agricultural carbon",
     "NDVI",
@@ -21,21 +23,22 @@ export const metadata: Metadata = {
     "carbon sequestration",
     "farm analytics",
     "climate tech India",
+    "earth intelligence",
   ],
-  authors: [{ name: "CarbonIQ" }],
-  creator: "CarbonIQ",
+  authors: [{ name: "VasudhaCarbon Technologies" }],
+  creator: "VasudhaCarbon Technologies Pvt. Ltd.",
   openGraph: {
-    title: "CarbonIQ — AI Agricultural Carbon Intelligence",
+    title: "VasudhaCarbon — Earth Intelligence Platform",
     description:
-      "Monitor crops, estimate carbon impact, and prepare verification-ready insights using satellite intelligence.",
+      "Earth Intelligence for a Sustainable Future. Monitor crops, estimate carbon impact, and build verification-ready data using satellite intelligence.",
     type: "website",
     locale: "en_IN",
-    siteName: "CarbonIQ",
+    siteName: "VasudhaCarbon",
   },
   twitter: {
     card: "summary_large_image",
-    title: "CarbonIQ",
-    description: "AI-powered agricultural carbon intelligence for India",
+    title: "VasudhaCarbon",
+    description: "Earth Intelligence for a Sustainable Future — AI-powered agricultural carbon intelligence for India",
   },
   robots: {
     index: true,

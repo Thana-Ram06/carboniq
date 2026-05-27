@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useTheme } from "next-themes";
-import { Sun, Moon, Menu, X, Leaf } from "lucide-react";
+import { Sun, Moon, Menu, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const NAV_LINKS = [
@@ -37,13 +38,17 @@ export function Navbar() {
     >
       <div className="container mx-auto px-6 h-16 flex items-center justify-between">
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-2.5 group">
-          <div className="w-8 h-8 rounded-lg bg-green-500/10 border border-green-500/20 flex items-center justify-center group-hover:bg-green-500/20 transition-colors">
-            <Leaf className="w-4 h-4 text-green-400" />
+        <Link href="/" className="flex items-center group">
+          <div className="dark:bg-white dark:rounded-lg dark:px-2 dark:py-1 transition-all">
+            <Image
+              src="/images/vasudha-logo.png"
+              alt="VASUDHA — Earth Intelligence for a Sustainable Future"
+              width={140}
+              height={48}
+              className="object-contain h-9 w-auto"
+              priority
+            />
           </div>
-          <span className="font-semibold text-foreground text-base">
-            Carbon<span className="text-green-400">IQ</span>
-          </span>
         </Link>
 
         {/* Desktop Nav */}

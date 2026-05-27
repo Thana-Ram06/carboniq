@@ -6,20 +6,20 @@ import { Plus, Minus } from "lucide-react";
 
 const FAQS = [
   {
-    q: "What is CarbonIQ and who is it for?",
-    a: "CarbonIQ is an AI-powered agricultural carbon intelligence platform designed for Indian farmers, agri-tech companies, carbon project developers, and sustainability analysts. It helps monitor crops via satellite data, estimate carbon sequestration potential, and prepare data for future carbon credit verification.",
+    q: "What is VASUDHA and who is it for?",
+    a: "VASUDHA is an AI-powered Earth Intelligence platform designed for Indian farmers, agri-tech companies, carbon project developers, and sustainability analysts. It helps monitor crops via satellite data, estimate carbon sequestration potential, and prepare data for future carbon credit verification.",
   },
   {
     q: "Does this platform generate actual carbon credits?",
-    a: "No — CarbonIQ is an intelligence and estimation platform. It computes estimated carbon scores and CO₂e reduction potential based on satellite and farm data. The verification and issuance of actual carbon credits requires separate accreditation through approved methodologies (e.g., Verra, Gold Standard). CarbonIQ prepares you with the structured data needed for that process.",
+    a: "No — VASUDHA is an Earth Intelligence and estimation platform. It computes estimated carbon scores and CO₂e reduction potential based on satellite and farm data. The verification and issuance of actual carbon credits requires separate accreditation through approved methodologies (e.g., Verra, Gold Standard). VasudhaCarbon prepares you with the structured data needed for that process.",
   },
   {
-    q: "What satellite data sources does CarbonIQ use?",
+    q: "What satellite data sources does VASUDHA use?",
     a: "The platform is designed to work with Sentinel-2 (10m resolution), Landsat 8/9, and MODIS imagery. The current MVP uses mock satellite data and placeholder NDVI values to demonstrate the analytics workflow. Google Earth Engine integration is on the roadmap for live data.",
   },
   {
     q: "What crops are supported?",
-    a: "CarbonIQ supports 10 major Indian crop types: Rice, Wheat, Sugarcane, Cotton, Maize, Soybean, Groundnut, Sunflower, Mustard, and Other. Each crop has specific carbon factors tuned for Indian agricultural conditions.",
+    a: "VASUDHA supports 10 major Indian crop types: Rice, Wheat, Sugarcane, Cotton, Maize, Soybean, Groundnut, Sunflower, Mustard, and Other. Each crop has specific carbon factors tuned for Indian agricultural conditions.",
   },
   {
     q: "How is the carbon score calculated?",
@@ -27,15 +27,15 @@ const FAQS = [
   },
   {
     q: "Is my farm data secure?",
-    a: "Yes. CarbonIQ uses Firebase with enterprise-grade security. All data is encrypted in transit and at rest. Firestore security rules ensure users can only access their own farm data. We follow Google Cloud's security standards and best practices.",
+    a: "Yes. VasudhaCarbon uses Firebase with enterprise-grade security. All data is encrypted in transit and at rest. Firestore security rules ensure users can only access their own farm data. We follow Google Cloud's security standards and best practices.",
   },
   {
     q: "Can I export reports?",
     a: "Yes — the Reports module allows you to generate farm-level and portfolio-level sustainability reports. PDF and CSV export options are available (with full generation in the roadmap). Reports include carbon scores, NDVI data, and verification-ready summaries.",
   },
   {
-    q: "Is CarbonIQ free to use?",
-    a: "CarbonIQ is currently in early access. The core platform features are available during the beta period. Future pricing will be tiered based on number of farms, analytics depth, and reporting features.",
+    q: "Is VASUDHA free to use?",
+    a: "VASUDHA is currently in early access. The core platform features are available during the beta period. Future pricing will be tiered based on number of farms, analytics depth, and reporting features.",
   },
 ];
 
@@ -61,7 +61,7 @@ export function FAQ() {
             <span className="text-gradient">questions</span>
           </h2>
           <p className="text-muted-foreground">
-            Everything you need to know about CarbonIQ
+            Everything you need to know about VASUDHA
           </p>
         </motion.div>
 

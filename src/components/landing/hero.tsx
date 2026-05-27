@@ -44,7 +44,7 @@ export function Hero() {
           className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-green-500/20 bg-green-500/5 text-green-400 text-sm font-medium mb-8"
         >
           <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-          Satellite-Powered Carbon Intelligence Platform
+          Earth Intelligence for a Sustainable Future
         </motion.div>
 
         {/* Main heading */}

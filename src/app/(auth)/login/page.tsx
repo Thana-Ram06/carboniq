@@ -6,7 +6,8 @@ import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Leaf, Eye, EyeOff, ArrowRight, Mail } from "lucide-react";
+import { Eye, EyeOff, ArrowRight, Mail } from "lucide-react";
+import Image from "next/image";
 import { motion } from "framer-motion";
 import { useAuth } from "@/contexts/auth-context";
 import { Button } from "@/components/ui/button";
@@ -110,18 +111,20 @@ export default function LoginPage() {
         <div className="absolute inset-0 grid-pattern opacity-40" />
         <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-gradient-radial from-green-500/6 to-transparent blur-3xl" />
 
-        <Link href="/" className="relative flex items-center gap-2.5 mb-16">
-          <div className="w-9 h-9 rounded-xl bg-green-500/10 border border-green-500/20 flex items-center justify-center">
-            <Leaf className="w-5 h-5 text-green-400" />
-          </div>
-          <span className="font-semibold text-foreground text-lg">
-            Carbon<span className="text-green-400">IQ</span>
-          </span>
+        <Link href="/" className="relative flex items-center mb-16">
+          <Image
+            src="/images/vasudha-logo.png"
+            alt="VASUDHA — Earth Intelligence for a Sustainable Future"
+            width={180}
+            height={60}
+            className="object-contain h-12 w-auto"
+            priority
+          />
         </Link>
 
         <div className="relative flex-1 flex flex-col justify-center max-w-sm">
           <h2 className="font-instrument-serif text-4xl text-foreground mb-4 leading-tight">
-            AI-powered carbon intelligence for India&apos;s farmers
+            Earth Intelligence for a Sustainable Future
           </h2>
           <p className="text-muted-foreground text-sm leading-relaxed mb-12">
             Monitor crops via satellite, estimate carbon impact, and build
@@ -145,7 +148,7 @@ export default function LoginPage() {
         </div>
 
         <p className="relative text-xs text-muted-foreground/50">
-          © 2025 CarbonIQ · Built for Indian agriculture
+          © 2026 VasudhaCarbon Technologies Pvt. Ltd.
         </p>
       </div>
 
@@ -159,13 +162,16 @@ export default function LoginPage() {
           className="w-full max-w-sm"
         >
           {/* Mobile logo */}
-          <Link href="/" className="lg:hidden flex items-center gap-2 mb-8">
-            <div className="w-8 h-8 rounded-xl bg-green-500/10 border border-green-500/20 flex items-center justify-center">
-              <Leaf className="w-4 h-4 text-green-400" />
+          <Link href="/" className="lg:hidden flex items-center mb-8">
+            <div className="dark:bg-white dark:rounded-lg dark:px-2 dark:py-1">
+              <Image
+                src="/images/vasudha-logo.png"
+                alt="VASUDHA"
+                width={150}
+                height={50}
+                className="object-contain h-10 w-auto"
+              />
             </div>
-            <span className="font-semibold text-foreground">
-              Carbon<span className="text-green-400">IQ</span>
-            </span>
           </Link>
 
           {mode === "signin" && (
@@ -174,7 +180,7 @@ export default function LoginPage() {
                 Welcome back
               </h1>
               <p className="text-muted-foreground text-sm mb-8">
-                Sign in to your CarbonIQ account
+                Sign in to your VasudhaCarbon account
               </p>
 
               <button

@@ -69,7 +69,7 @@ export function CarbonIntelligenceSection() {
               scientific precision
             </h2>
             <p className="text-muted-foreground leading-relaxed mb-6">
-              CarbonIQ uses IPCC Tier 1 methodology adapted for Indian
+              VASUDHA uses IPCC Tier 1 methodology adapted for Indian
               agriculture to estimate CO₂e reduction potential. Our AI engine
               factors in crop type, irrigation efficiency, NDVI scores, and soil
               organic carbon to generate accurate carbon estimations.

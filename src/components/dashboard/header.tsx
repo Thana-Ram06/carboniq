@@ -33,7 +33,7 @@ export function Header() {
     <header className="h-16 flex items-center justify-between px-6 border-b border-border bg-background/80 backdrop-blur-sm flex-shrink-0">
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 text-sm">
-        <span className="text-muted-foreground">CarbonIQ</span>
+        <span className="text-muted-foreground">VasudhaCarbon</span>
         <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/50" />
         <span className="text-foreground font-medium">{currentPage}</span>
         {pathParts.length > 1 && (

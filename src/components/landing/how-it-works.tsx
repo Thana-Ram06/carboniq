@@ -66,7 +66,7 @@ export function HowItWorks() {
             in four steps
           </h2>
           <p className="text-zinc-400 text-lg max-w-xl mx-auto">
-            CarbonIQ simplifies the complexity of agricultural carbon
+            VASUDHA simplifies the complexity of agricultural carbon
             measurement into an intuitive workflow.
           </p>
         </motion.div>
