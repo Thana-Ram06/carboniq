@@ -23,6 +23,13 @@ import type {
   Report,
   ActivityItem,
   DashboardStats,
+  ScanJob,
+  ScanJobStatus,
+  Insight,
+  FarmInsightsRecord,
+  CarbonAnalyticsRecord,
+  VegetationScoreRecord,
+  NDVIHistoryRecord,
 } from "@/types";
 import { quickCarbonEstimate } from "./carbon-estimation";
 
@@ -379,4 +386,162 @@ export async function getDashboardStats(
         : 0,
     estimatedCarbonCredits: parseFloat((estimatedCO2 * 15).toFixed(2)),
   };
+}
+
+// ──────────────────────────────────────────
+// SCAN JOBS
+// ──────────────────────────────────────────
+
+export async function createScanJob(data: {
+  farmId: string;
+  userId: string;
+}): Promise<string> {
+  const ref = await addDoc(collection(db(), COLLECTIONS.SCAN_JOBS), {
+    ...data,
+    status: "pending" as ScanJobStatus,
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+  });
+  return ref.id;
+}
+
+export async function updateScanJob(
+  jobId: string,
+  update: { status: ScanJobStatus; error?: string }
+): Promise<void> {
+  await updateDoc(doc(db(), COLLECTIONS.SCAN_JOBS, jobId), {
+    ...update,
+    updatedAt: serverTimestamp(),
+  });
+}
+
+export async function getRecentScanJobs(
+  userId: string,
+  count = 10
+): Promise<ScanJob[]> {
+  const q = query(
+    collection(db(), COLLECTIONS.SCAN_JOBS),
+    where("userId", "==", userId),
+    orderBy("createdAt", "desc"),
+    limit(count)
+  );
+  const snap = await getDocs(q);
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() }) as ScanJob);
+}
+
+// ──────────────────────────────────────────
+// FARM INSIGHTS
+// ──────────────────────────────────────────
+
+export async function saveFarmInsights(data: {
+  farmId: string;
+  userId: string;
+  insights: Insight[];
+}): Promise<void> {
+  const col = collection(db(), COLLECTIONS.FARM_INSIGHTS);
+  const q = query(col, where("farmId", "==", data.farmId));
+  const snap = await getDocs(q);
+  if (!snap.empty) {
+    await updateDoc(snap.docs[0].ref, {
+      insights: data.insights,
+      generatedAt: serverTimestamp(),
+    });
+  } else {
+    await addDoc(col, {
+      ...data,
+      generatedAt: serverTimestamp(),
+    });
+  }
+}
+
+export async function getLatestFarmInsights(
+  farmId: string
+): Promise<FarmInsightsRecord | null> {
+  const q = query(
+    collection(db(), COLLECTIONS.FARM_INSIGHTS),
+    where("farmId", "==", farmId)
+  );
+  const snap = await getDocs(q);
+  if (snap.empty) return null;
+  return { id: snap.docs[0].id, ...snap.docs[0].data() } as FarmInsightsRecord;
+}
+
+// ──────────────────────────────────────────
+// CARBON ANALYTICS
+// ──────────────────────────────────────────
+
+export async function saveCarbonAnalytics(
+  data: Omit<CarbonAnalyticsRecord, "id" | "computedAt">
+): Promise<void> {
+  const col = collection(db(), COLLECTIONS.CARBON_ANALYTICS);
+  const q = query(col, where("farmId", "==", data.farmId));
+  const snap = await getDocs(q);
+  if (!snap.empty) {
+    await updateDoc(snap.docs[0].ref, { ...data, computedAt: serverTimestamp() });
+  } else {
+    await addDoc(col, { ...data, computedAt: serverTimestamp() });
+  }
+}
+
+export async function getLatestCarbonAnalytics(
+  farmId: string
+): Promise<CarbonAnalyticsRecord | null> {
+  const q = query(
+    collection(db(), COLLECTIONS.CARBON_ANALYTICS),
+    where("farmId", "==", farmId)
+  );
+  const snap = await getDocs(q);
+  if (snap.empty) return null;
+  return {
+    id: snap.docs[0].id,
+    ...snap.docs[0].data(),
+  } as CarbonAnalyticsRecord;
+}
+
+// ──────────────────────────────────────────
+// VEGETATION SCORES
+// ──────────────────────────────────────────
+
+export async function saveVegetationScore(
+  data: Omit<VegetationScoreRecord, "id" | "computedAt">
+): Promise<void> {
+  const col = collection(db(), COLLECTIONS.VEGETATION_SCORES);
+  const q = query(col, where("farmId", "==", data.farmId));
+  const snap = await getDocs(q);
+  if (!snap.empty) {
+    await updateDoc(snap.docs[0].ref, { ...data, computedAt: serverTimestamp() });
+  } else {
+    await addDoc(col, { ...data, computedAt: serverTimestamp() });
+  }
+}
+
+// ──────────────────────────────────────────
+// NDVI HISTORY
+// ──────────────────────────────────────────
+
+export async function saveNDVIHistory(data: {
+  farmId: string;
+  userId: string;
+  ndvi: number;
+  evi?: number;
+  source: string;
+}): Promise<void> {
+  await addDoc(collection(db(), COLLECTIONS.NDVI_HISTORY), {
+    ...data,
+    capturedAt: serverTimestamp(),
+  });
+}
+
+export async function getFarmNDVIHistory(
+  farmId: string,
+  months = 12
+): Promise<NDVIHistoryRecord[]> {
+  const q = query(
+    collection(db(), COLLECTIONS.NDVI_HISTORY),
+    where("farmId", "==", farmId),
+    orderBy("capturedAt", "desc"),
+    limit(months)
+  );
+  const snap = await getDocs(q);
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() }) as NDVIHistoryRecord);
 }

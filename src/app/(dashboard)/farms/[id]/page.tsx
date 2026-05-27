@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import { useParams, useRouter } from "next/navigation";
 import {
@@ -18,31 +18,30 @@ import {
   Layers,
   Activity,
   CheckCircle2,
-  Clock,
-  AlertCircle,
   ChevronRight,
   Pencil,
-  Globe,
 } from "lucide-react";
 import { getFarm } from "@/lib/firestore";
+import { computeFarmNDVI } from "@/lib/satellite/ndvi-engine";
 import {
-  generateMockCarbonTimeSeries,
-  generateMockNDVITimeSeries,
-  estimateCarbon,
-} from "@/lib/carbon-estimation";
+  computeHealthScore,
+  healthColorClass,
+} from "@/lib/intelligence/health-scoring";
+import { computeCarbonIntelligence } from "@/lib/intelligence/carbon-intelligence";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CarbonScoreChart, NDVIChart } from "@/components/dashboard/carbon-chart";
+import { IntelligencePanel } from "@/components/intelligence/IntelligencePanel";
 import {
   getCropLabel,
   getIrrigationLabel,
-  getCarbonScoreGrade,
   getNDVIColor,
   formatTimestamp,
   formatHectares,
 } from "@/lib/utils";
-import type { Farm, CarbonEstimationResults } from "@/types";
+import { useAuth } from "@/hooks/use-auth";
+import type { Farm } from "@/types";
 import Link from "next/link";
 
 const FarmMap = dynamic(
@@ -65,13 +64,10 @@ interface TimelineEvent {
   title: string;
   description: string;
   time: string;
-  status?: "success" | "pending" | "info";
 }
 
 function ActivityTimeline({ farm }: { farm: Farm }) {
-  const registeredDate = farm.createdAt
-    ? formatTimestamp(farm.createdAt)
-    : "—";
+  const registeredDate = farm.createdAt ? formatTimestamp(farm.createdAt) : "—";
 
   const events: TimelineEvent[] = [
     {
@@ -80,13 +76,12 @@ function ActivityTimeline({ farm }: { farm: Farm }) {
       iconColor: "text-green-400",
       iconBg: "bg-green-500/10",
       title: "Farm registered",
-      description: `${farm.name} added to the monitoring system`,
+      description: `${farm.name} added to the VASUDHA monitoring system`,
       time: registeredDate,
-      status: "success",
     },
     {
       id: "boundary",
-      icon: farm.boundary ? CheckCircle2 : Clock,
+      icon: farm.boundary ? CheckCircle2 : Layers,
       iconColor: farm.boundary ? "text-blue-400" : "text-muted-foreground/40",
       iconBg: farm.boundary ? "bg-blue-500/10" : "bg-muted",
       title: farm.boundary ? "Boundary mapped" : "Boundary pending",
@@ -94,27 +89,26 @@ function ActivityTimeline({ farm }: { farm: Farm }) {
         ? `GeoJSON polygon saved — ${farm.areaHectares.toFixed(2)} ha`
         : "Draw the farm boundary to enable satellite analytics",
       time: farm.boundary ? registeredDate : "Action required",
-      status: farm.boundary ? "success" : "pending",
     },
     {
       id: "ndvi",
       icon: Leaf,
       iconColor: "text-emerald-400",
       iconBg: "bg-emerald-500/10",
-      title: "NDVI baseline computed",
-      description: "Vegetation index estimated from location data",
+      title: "NDVI intelligence active",
+      description:
+        "Vegetation index computed from crop phenology and climate zone data",
       time: registeredDate,
-      status: "info",
     },
     {
-      id: "satellite",
-      icon: Satellite,
-      iconColor: "text-muted-foreground/40",
-      iconBg: "bg-muted",
-      title: "Satellite imagery — pending",
-      description: "Connect Google Earth Engine to enable real imagery",
-      time: "Upcoming",
-      status: "pending",
+      id: "intelligence",
+      icon: Activity,
+      iconColor: "text-purple-400",
+      iconBg: "bg-purple-500/10",
+      title: "Intelligence engine running",
+      description:
+        "Health scoring, insights, and carbon estimation available",
+      time: "Live",
     },
   ];
 
@@ -124,7 +118,6 @@ function ActivityTimeline({ farm }: { farm: Farm }) {
         const Icon = ev.icon;
         return (
           <div key={ev.id} className="flex gap-3">
-            {/* Timeline line */}
             <div className="flex flex-col items-center">
               <div
                 className={`w-7 h-7 rounded-xl ${ev.iconBg} border border-border flex items-center justify-center shrink-0`}
@@ -135,13 +128,18 @@ function ActivityTimeline({ farm }: { farm: Farm }) {
                 <div className="w-px flex-1 bg-border mt-1 mb-1 min-h-[20px]" />
               )}
             </div>
-            {/* Content */}
-            <div className={`pb-${i < events.length - 1 ? "4" : "0"} flex-1 min-w-0`}>
+            <div className="pb-4 flex-1 min-w-0 last:pb-0">
               <div className="flex items-center justify-between gap-2 mb-0.5">
-                <p className="text-sm font-medium text-foreground truncate">{ev.title}</p>
-                <span className="text-xs text-muted-foreground/50 shrink-0">{ev.time}</span>
+                <p className="text-sm font-medium text-foreground truncate">
+                  {ev.title}
+                </p>
+                <span className="text-xs text-muted-foreground/50 shrink-0">
+                  {ev.time}
+                </span>
               </div>
-              <p className="text-xs text-muted-foreground/60 leading-relaxed">{ev.description}</p>
+              <p className="text-xs text-muted-foreground/60 leading-relaxed">
+                {ev.description}
+              </p>
             </div>
           </div>
         );
@@ -150,133 +148,69 @@ function ActivityTimeline({ farm }: { farm: Farm }) {
   );
 }
 
-// ── Satellite placeholder ─────────────────────────────────────────────────────
-
-function SatellitePlaceholder({ farm }: { farm: Farm }) {
-  const bands = [
-    { name: "NDVI", desc: "Vegetation index" },
-    { name: "NDWI", desc: "Water index" },
-    { name: "EVI", desc: "Enhanced vegetation" },
-    { name: "SAVI", desc: "Soil-adjusted VI" },
-  ];
-
-  return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2">
-            <Satellite className="w-4 h-4 text-muted-foreground/60" />
-            Satellite Intelligence
-          </CardTitle>
-          <Badge variant="yellow" size="sm">Coming Soon</Badge>
-        </div>
-      </CardHeader>
-      <CardContent>
-        <div
-          className="relative rounded-2xl overflow-hidden border border-border"
-          style={{ height: 200, background: "linear-gradient(135deg, #040906 0%, #060d08 100%)" }}
-        >
-          {/* Scanline animation */}
-          <div
-            className="absolute left-0 right-0 h-px opacity-20"
-            style={{
-              background: "linear-gradient(90deg, transparent, #4ade80, transparent)",
-              animation: "scanline 3s linear infinite",
-            }}
-          />
-          {/* Grid */}
-          <div
-            className="absolute inset-0 opacity-20"
-            style={{
-              backgroundImage:
-                "linear-gradient(rgba(74,222,128,0.07) 1px, transparent 1px), linear-gradient(90deg, rgba(74,222,128,0.07) 1px, transparent 1px)",
-              backgroundSize: "32px 32px",
-            }}
-          />
-          {/* Center content */}
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-green-500/10 border border-green-500/15 flex items-center justify-center">
-              <Globe className="w-6 h-6 text-green-400/60" />
-            </div>
-            <div className="text-center">
-              <p className="text-sm font-medium text-muted-foreground/70">
-                Awaiting GEE Connection
-              </p>
-              <p className="text-xs text-muted-foreground/40 mt-0.5">
-                {farm.name} · {farm.areaHectares.toFixed(1)} ha
-              </p>
-            </div>
-          </div>
-          {/* Corner coords */}
-          <div className="absolute bottom-3 right-3 text-[10px] text-green-400/30 font-mono">
-            {farm.coordinates.lat.toFixed(4)}°N {farm.coordinates.lng.toFixed(4)}°E
-          </div>
-        </div>
-
-        <div className="mt-4 grid grid-cols-2 gap-2">
-          {bands.map((b) => (
-            <div
-              key={b.name}
-              className="p-3 rounded-xl bg-muted border border-border"
-            >
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-xs font-semibold text-foreground">{b.name}</span>
-                <div className="w-1.5 h-1.5 rounded-full bg-muted-foreground/20" />
-              </div>
-              <div className="h-1 rounded-full bg-border overflow-hidden">
-                <div className="h-full w-0 bg-green-500/40 rounded-full" />
-              </div>
-              <p className="text-[10px] text-muted-foreground/40 mt-1">{b.desc} — no data</p>
-            </div>
-          ))}
-        </div>
-
-        <div className="mt-4 flex items-center gap-2 text-xs text-muted-foreground/50">
-          <AlertCircle className="w-3.5 h-3.5" />
-          <span>
-            Connect Google Earth Engine in{" "}
-            <Link href="/settings" className="text-green-400/70 hover:text-green-400 transition-colors">
-              Settings → Integrations
-            </Link>{" "}
-            to enable real satellite data.
-          </span>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export default function FarmDetailPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
+  const { user } = useAuth();
   const [farm, setFarm] = useState<Farm | null>(null);
   const [loading, setLoading] = useState(true);
-  const [carbonResult, setCarbonResult] = useState<CarbonEstimationResults | null>(null);
-  const carbonData = generateMockCarbonTimeSeries(12);
-  const ndviData = generateMockNDVITimeSeries(12);
 
   useEffect(() => {
     if (!id) return;
     getFarm(id).then((f) => {
       setFarm(f);
-      if (f) {
-        const result = estimateCarbon({
-          cropType: f.cropType,
-          areaHectares: f.areaHectares,
-          irrigationType: f.irrigationType,
-          ndviScore: 0.55 + Math.random() * 0.25,
-          vegetationCoverage: 60 + Math.random() * 25,
-          soilOrganicCarbon: 1.2,
-          fertilizerUseKgPerHa: 80,
-          seasonalCycles: 1,
-        });
-        setCarbonResult(result);
-      }
       setLoading(false);
     });
   }, [id]);
+
+  // Compute real NDVI + derived intelligence from crop/irrigation/state data
+  const ndviResult = useMemo(() => {
+    if (!farm) return null;
+    return computeFarmNDVI({
+      farmId: farm.id,
+      cropType: farm.cropType,
+      irrigationType: farm.irrigationType,
+      state: farm.state,
+      areaHectares: farm.areaHectares,
+    });
+  }, [farm]);
+
+  const ndvi = ndviResult?.current.ndvi ?? 0.5;
+
+  const healthScore = useMemo(
+    () => computeHealthScore(ndvi),
+    [ndvi]
+  );
+
+  const carbon = useMemo(
+    () => (farm ? computeCarbonIntelligence(farm, ndvi) : null),
+    [farm, ndvi]
+  );
+
+  // Real NDVI chart data from phenology time series
+  const ndviChartData = useMemo(() => {
+    if (!ndviResult) return [];
+    return ndviResult.timeSeries.map((pt) => ({
+      month: pt.month,
+      ndvi: pt.ndvi,
+      biomass: parseFloat((pt.ndvi * 8.4).toFixed(2)),
+    }));
+  }, [ndviResult]);
+
+  // Real carbon trend derived from NDVI time series
+  const carbonChartData = useMemo(() => {
+    if (!ndviResult || !farm) return [];
+    return ndviResult.timeSeries.map((pt) => {
+      const c = computeCarbonIntelligence(farm, pt.ndvi);
+      return {
+        month: pt.month,
+        carbonScore: c.sustainabilityIndex,
+        co2eReduction: c.carbonScoreTonnes,
+      };
+    });
+  }, [ndviResult, farm]);
 
   if (loading) {
     return (
@@ -306,12 +240,11 @@ export default function FarmDetailPage() {
     );
   }
 
-  const grade = carbonResult ? getCarbonScoreGrade(carbonResult.carbonScore) : null;
   const hasBoundary = !!farm.boundary?.coordinates?.[0]?.length;
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">
-      {/* ── Back ─────────────────────────────────────────────────────────── */}
+      {/* ── Back ───────────────────────────────────────────────────────────── */}
       <button
         onClick={() => router.back()}
         className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
@@ -320,14 +253,20 @@ export default function FarmDetailPage() {
         Back to Farms
       </button>
 
-      {/* ── Header ───────────────────────────────────────────────────────── */}
+      {/* ── Header ─────────────────────────────────────────────────────────── */}
       <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
         <div>
           <div className="flex items-center gap-3 flex-wrap">
-            <h1 className="text-2xl font-semibold text-foreground">{farm.name}</h1>
-            <Badge variant="green" dot>{farm.status}</Badge>
+            <h1 className="text-2xl font-semibold text-foreground">
+              {farm.name}
+            </h1>
+            <Badge variant="green" dot>
+              {farm.status}
+            </Badge>
             {hasBoundary && (
-              <Badge variant="blue" size="sm">Boundary mapped</Badge>
+              <Badge variant="blue" size="sm">
+                Boundary mapped
+              </Badge>
             )}
           </div>
           <div className="flex items-center gap-1.5 mt-1.5">
@@ -347,29 +286,52 @@ export default function FarmDetailPage() {
           <Link href="/satellite">
             <Button variant="outline" size="sm">
               <Satellite className="w-4 h-4" />
-              Run NDVI
+              NDVI Map
             </Button>
           </Link>
           <Link href="/carbon">
             <Button variant="primary" size="sm">
               <BarChart3 className="w-4 h-4" />
-              Estimate Carbon
+              Carbon Report
             </Button>
           </Link>
         </div>
       </div>
 
-      {/* ── Stats row ─────────────────────────────────────────────────────── */}
+      {/* ── Stats row ──────────────────────────────────────────────────────── */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {[
-          { icon: Ruler, label: "Total Area", value: formatHectares(farm.areaHectares), color: "text-green-400" },
-          { icon: Wheat, label: "Crop", value: getCropLabel(farm.cropType), color: "text-emerald-400" },
-          { icon: Droplets, label: "Irrigation", value: getIrrigationLabel(farm.irrigationType).split(" ")[0], color: "text-blue-400" },
-          { icon: Calendar, label: "Registered", value: formatTimestamp(farm.createdAt), color: "text-muted-foreground" },
+          {
+            icon: Ruler,
+            label: "Total Area",
+            value: formatHectares(farm.areaHectares),
+            color: "text-green-400",
+          },
+          {
+            icon: Wheat,
+            label: "Crop",
+            value: getCropLabel(farm.cropType),
+            color: "text-emerald-400",
+          },
+          {
+            icon: Droplets,
+            label: "Irrigation",
+            value: getIrrigationLabel(farm.irrigationType).split(" ")[0],
+            color: "text-blue-400",
+          },
+          {
+            icon: Calendar,
+            label: "Registered",
+            value: formatTimestamp(farm.createdAt),
+            color: "text-muted-foreground",
+          },
         ].map((s) => {
           const Icon = s.icon;
           return (
-            <div key={s.label} className="p-4 rounded-2xl border border-border bg-card">
+            <div
+              key={s.label}
+              className="p-4 rounded-2xl border border-border bg-card"
+            >
               <Icon className={`w-4 h-4 ${s.color} mb-2`} />
               <p className="text-sm font-semibold text-foreground">{s.value}</p>
               <p className="text-xs text-muted-foreground/50">{s.label}</p>
@@ -378,7 +340,7 @@ export default function FarmDetailPage() {
         })}
       </div>
 
-      {/* ── Map + Carbon Score ────────────────────────────────────────────── */}
+      {/* ── Map + Carbon Score ──────────────────────────────────────────────── */}
       <div className="grid lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">
           <Card>
@@ -408,115 +370,172 @@ export default function FarmDetailPage() {
               {hasBoundary && (
                 <div className="mt-3 flex items-center gap-2 text-xs text-muted-foreground/60">
                   <CheckCircle2 className="w-3.5 h-3.5 text-green-400" />
-                  <span>GeoJSON polygon saved · {farm.areaHectares.toFixed(2)} ha mapped</span>
+                  <span>
+                    GeoJSON polygon saved · {farm.areaHectares.toFixed(2)} ha
+                    mapped
+                  </span>
                 </div>
               )}
             </CardContent>
           </Card>
         </div>
 
-        {/* Carbon score */}
+        {/* Real Carbon Score from Intelligence Engine */}
         <div>
           <Card className="h-full">
             <CardHeader>
               <CardTitle>Carbon Score</CardTitle>
             </CardHeader>
             <CardContent>
-              {carbonResult ? (
+              {carbon ? (
                 <div className="text-center py-2">
+                  {/* Sustainability ring */}
                   <div className="relative w-28 h-28 mx-auto mb-4">
-                    <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
-                      <circle cx="50" cy="50" r="40" fill="none" stroke="rgba(74,222,128,0.1)" strokeWidth="8" />
+                    <svg
+                      className="w-full h-full -rotate-90"
+                      viewBox="0 0 100 100"
+                    >
                       <circle
-                        cx="50" cy="50" r="40" fill="none" stroke="#4ade80" strokeWidth="8"
+                        cx="50"
+                        cy="50"
+                        r="40"
+                        fill="none"
+                        stroke="rgba(74,222,128,0.1)"
+                        strokeWidth="8"
+                      />
+                      <circle
+                        cx="50"
+                        cy="50"
+                        r="40"
+                        fill="none"
+                        stroke={healthScore.hex}
+                        strokeWidth="8"
                         strokeLinecap="round"
-                        strokeDasharray={`${2 * Math.PI * 40 * (carbonResult.carbonScore / 100)} ${2 * Math.PI * 40}`}
+                        strokeDasharray={`${
+                          2 * Math.PI * 40 * (carbon.sustainabilityIndex / 100)
+                        } ${2 * Math.PI * 40}`}
                       />
                     </svg>
                     <div className="absolute inset-0 flex flex-col items-center justify-center">
-                      <span className="text-3xl font-bold text-foreground">{carbonResult.carbonScore}</span>
-                      {grade && (
-                        <span className={`text-sm font-semibold ${grade.color}`}>{grade.grade}</span>
-                      )}
+                      <span className="text-3xl font-bold text-foreground">
+                        {carbon.sustainabilityIndex}
+                      </span>
+                      <span
+                        className={`text-sm font-semibold ${healthColorClass(healthScore.color)}`}
+                      >
+                        {healthScore.label}
+                      </span>
                     </div>
                   </div>
-                  {grade && (
-                    <Badge variant="green" className="mb-4">{grade.label}</Badge>
-                  )}
+
+                  <Badge
+                    variant={
+                      healthScore.score >= 70
+                        ? "green"
+                        : healthScore.score >= 45
+                        ? "yellow"
+                        : "red"
+                    }
+                    className="mb-4"
+                  >
+                    {healthScore.description.split(" ").slice(0, 3).join(" ")}
+                  </Badge>
+
                   <div className="grid grid-cols-2 gap-2 text-left">
                     <div className="p-2.5 rounded-xl bg-muted border border-border">
-                      <p className="text-[10px] text-muted-foreground/50 mb-0.5">CO₂e Est.</p>
-                      <p className="text-sm font-bold text-foreground">{carbonResult.totalCO2eReduction.toFixed(1)} t</p>
+                      <p className="text-[10px] text-muted-foreground/50 mb-0.5">
+                        CO₂e Est.
+                      </p>
+                      <p className="text-sm font-bold text-foreground">
+                        {carbon.carbonScoreTonnes.toFixed(1)} t
+                      </p>
                     </div>
                     <div className="p-2.5 rounded-xl bg-muted border border-border">
-                      <p className="text-[10px] text-muted-foreground/50 mb-0.5">Credits</p>
-                      <p className="text-sm font-bold text-foreground">₹{(carbonResult.projectedAnnualCredits / 100).toFixed(0)}K</p>
+                      <p className="text-[10px] text-muted-foreground/50 mb-0.5">
+                        Credits
+                      </p>
+                      <p className="text-sm font-bold text-foreground">
+                        ${carbon.carbonCreditEstimate.toLocaleString()}
+                      </p>
                     </div>
                     <div className="p-2.5 rounded-xl bg-muted border border-border col-span-2">
-                      <p className="text-[10px] text-muted-foreground/50 mb-0.5">Sustainability</p>
+                      <p className="text-[10px] text-muted-foreground/50 mb-0.5">
+                        NDVI Index
+                      </p>
                       <div className="flex items-center gap-2">
                         <div className="flex-1 h-1.5 rounded-full bg-border overflow-hidden">
                           <div
-                            className="h-full bg-green-500 rounded-full"
-                            style={{ width: `${carbonResult.sustainabilityIndex * 100}%` }}
+                            className="h-full rounded-full transition-all"
+                            style={{
+                              width: `${Math.max(4, ndvi * 100)}%`,
+                              background: getNDVIColor(ndvi),
+                            }}
                           />
                         </div>
-                        <span className="text-xs font-medium text-foreground">
-                          {(carbonResult.sustainabilityIndex * 100).toFixed(0)}%
+                        <span className="text-xs font-mono text-foreground">
+                          {ndvi.toFixed(3)}
                         </span>
                       </div>
                     </div>
                   </div>
                 </div>
               ) : (
-                <div className="text-center py-8 text-muted-foreground/50 text-sm">No estimation yet</div>
+                <div className="text-center py-8 text-muted-foreground/50 text-sm">
+                  Loading…
+                </div>
               )}
             </CardContent>
           </Card>
         </div>
       </div>
 
-      {/* ── Charts ───────────────────────────────────────────────────────── */}
+      {/* ── Charts ─────────────────────────────────────────────────────────── */}
       <div className="grid lg:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
-              <CardTitle>Carbon Score Trend</CardTitle>
+              <CardTitle>Carbon Sustainability Trend</CardTitle>
               <TrendingUp className="w-4 h-4 text-green-400" />
             </div>
           </CardHeader>
           <CardContent>
-            <CarbonScoreChart data={carbonData} />
+            <CarbonScoreChart data={carbonChartData} />
+            <p className="mt-2 text-[10px] text-muted-foreground/40">
+              Derived from crop phenology NDVI · VASUDHA Carbon Engine v1
+            </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
-              <CardTitle>NDVI Analytics</CardTitle>
+              <CardTitle>NDVI Vegetation Timeline</CardTitle>
               <div
                 className="w-4 h-4 rounded-full"
-                style={{ background: getNDVIColor(ndviData[ndviData.length - 1]?.ndvi ?? 0.5) }}
+                style={{ background: getNDVIColor(ndvi) }}
               />
             </div>
           </CardHeader>
           <CardContent>
-            <NDVIChart data={ndviData} />
+            <NDVIChart data={ndviChartData} />
             <div className="mt-3 flex items-center gap-2">
               <Leaf className="w-3.5 h-3.5 text-green-400" />
               <span className="text-xs text-muted-foreground">
                 Current NDVI:{" "}
                 <span className="text-foreground font-medium">
-                  {ndviData[ndviData.length - 1]?.ndvi?.toFixed(3)}
+                  {ndvi.toFixed(3)}
                 </span>{" "}
-                — Healthy vegetation
+                ·{" "}
+                <span className={healthColorClass(healthScore.color)}>
+                  {healthScore.label}
+                </span>
               </span>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* ── Activity + Satellite ─────────────────────────────────────────── */}
+      {/* ── Activity + Intelligence Panel ──────────────────────────────────── */}
       <div className="grid lg:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
@@ -532,34 +551,53 @@ export default function FarmDetailPage() {
           </CardContent>
         </Card>
 
-        <SatellitePlaceholder farm={farm} />
+        <IntelligencePanel farm={farm} userId={user?.uid} />
       </div>
 
-      {/* ── Notes ────────────────────────────────────────────────────────── */}
+      {/* ── Notes ──────────────────────────────────────────────────────────── */}
       {farm.notes && (
         <Card>
           <CardHeader>
             <CardTitle>Field Notes</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-muted-foreground leading-relaxed">{farm.notes}</p>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              {farm.notes}
+            </p>
           </CardContent>
         </Card>
       )}
 
-      {/* ── Quick actions ─────────────────────────────────────────────────── */}
+      {/* ── Quick actions ───────────────────────────────────────────────────── */}
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pb-6">
         {[
-          { href: "/carbon", icon: BarChart3, label: "Run Carbon Estimation", color: "text-green-400" },
-          { href: "/satellite", icon: Satellite, label: "View NDVI Satellite", color: "text-blue-400" },
-          { href: "/reports", icon: TrendingUp, label: "Generate Report", color: "text-emerald-400" },
+          {
+            href: "/carbon",
+            icon: BarChart3,
+            label: "Run Carbon Estimation",
+            color: "text-green-400",
+          },
+          {
+            href: "/satellite",
+            icon: Satellite,
+            label: "View NDVI Satellite",
+            color: "text-blue-400",
+          },
+          {
+            href: "/reports",
+            icon: TrendingUp,
+            label: "Generate Report",
+            color: "text-emerald-400",
+          },
         ].map((a) => {
           const Icon = a.icon;
           return (
             <Link key={a.href} href={a.href}>
               <div className="p-4 rounded-2xl border border-border bg-card hover:bg-card/80 hover:border-green-500/20 cursor-pointer transition-all group flex items-center gap-3">
                 <Icon className={`w-4 h-4 ${a.color} shrink-0`} />
-                <span className="text-xs font-medium text-foreground">{a.label}</span>
+                <span className="text-xs font-medium text-foreground">
+                  {a.label}
+                </span>
                 <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/30 ml-auto group-hover:text-muted-foreground/60 transition-colors" />
               </div>
             </Link>

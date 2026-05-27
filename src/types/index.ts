@@ -256,6 +256,89 @@ export interface ActivityItem {
 // UI TYPES
 // ──────────────────────────────────────────
 
+// ──────────────────────────────────────────
+// INTELLIGENCE TYPES (Phase 3)
+// ──────────────────────────────────────────
+
+export type ScanJobStatus = "pending" | "processing" | "completed" | "failed";
+
+export interface ScanJob {
+  id: string;
+  farmId: string;
+  userId: string;
+  status: ScanJobStatus;
+  error?: string;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+}
+
+export type InsightType =
+  | "vegetation"
+  | "irrigation"
+  | "carbon"
+  | "seasonal"
+  | "trend"
+  | "boundary";
+export type InsightSeverity = "info" | "warning" | "success" | "critical";
+
+export interface Insight {
+  id: string;
+  type: InsightType;
+  severity: InsightSeverity;
+  title: string;
+  body: string;
+  metric?: string;
+  timestamp: string;
+}
+
+export interface FarmInsightsRecord {
+  id: string;
+  farmId: string;
+  userId: string;
+  insights: Insight[];
+  generatedAt: Timestamp;
+}
+
+export interface CarbonAnalyticsRecord {
+  id: string;
+  farmId: string;
+  userId: string;
+  carbonScoreTonnes: number;
+  biomassGreenTonnes: number;
+  sustainabilityIndex: number;
+  vegetationCoverage: number;
+  carbonCreditEstimate: number;
+  methodology: string;
+  confidence: "low" | "medium" | "high";
+  computedAt: Timestamp;
+}
+
+export interface VegetationScoreRecord {
+  id: string;
+  farmId: string;
+  userId: string;
+  score: number;
+  label: string;
+  color: string;
+  hex: string;
+  description: string;
+  computedAt: Timestamp;
+}
+
+export interface NDVIHistoryRecord {
+  id: string;
+  farmId: string;
+  userId: string;
+  ndvi: number;
+  evi?: number;
+  source: string;
+  capturedAt: Timestamp;
+}
+
+// ──────────────────────────────────────────
+// UI TYPES
+// ──────────────────────────────────────────
+
 export type Theme = "dark" | "light" | "system";
 
 export interface NavItem {

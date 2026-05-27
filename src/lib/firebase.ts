@@ -59,4 +59,9 @@ export const COLLECTIONS = {
   CARBON_ESTIMATIONS: "carbon_estimations",
   REPORTS: "reports",
   ACTIVITY: "activity",
+  SCAN_JOBS: "scan_jobs",
+  NDVI_HISTORY: "ndvi_history",
+  FARM_INSIGHTS: "farm_insights",
+  CARBON_ANALYTICS: "carbon_analytics",
+  VEGETATION_SCORES: "vegetation_scores",
 } as const;

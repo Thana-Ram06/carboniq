@@ -19,6 +19,7 @@ import {
   Info,
   Zap,
   Wind,
+  Brain,
 } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -27,6 +28,12 @@ import { NDVIChart } from "@/components/dashboard/carbon-chart";
 import { useAuth } from "@/hooks/use-auth";
 import { useFarms } from "@/hooks/use-farms";
 import { saveSatelliteScan } from "@/lib/firestore";
+import { computeHealthScore, healthColorClass } from "@/lib/intelligence/health-scoring";
+import { generateInsights } from "@/lib/intelligence/insights-engine";
+import type { Insight } from "@/types";
+import { computeSeasonalBaseline } from "@/lib/intelligence/historical-analytics";
+import { InsightCard } from "@/components/intelligence/InsightCard";
+import { HealthScoreRing } from "@/components/intelligence/HealthScoreRing";
 import {
   computeFarmNDVI,
   ndviStatusLabel,
@@ -156,21 +163,36 @@ export default function SatellitePage() {
   const [scanning, setScanning] = useState(false);
   const [scanResults, setScanResults] = useState<Record<string, ComputedNDVI>>({});
   const [scanSources, setScanSources] = useState<Record<string, string>>({});
+  const [farmInsights, setFarmInsights] = useState<Record<string, Insight[]>>({});
 
-  // ── Compute NDVI for all farms on load ────────────────────────────────────
+  // ── Compute NDVI + intelligence for all farms on load ────────────────────
   useEffect(() => {
     if (farms.length === 0) return;
     const results: Record<string, ComputedNDVI> = {};
+    const insights: Record<string, Insight[]> = {};
+    const month = new Date().getMonth();
+
     farms.forEach((farm) => {
-      results[farm.id] = computeFarmNDVI({
+      const result = computeFarmNDVI({
         farmId: farm.id,
         cropType: farm.cropType,
         irrigationType: farm.irrigationType,
         state: farm.state,
         areaHectares: farm.areaHectares,
       });
+      results[farm.id] = result;
+
+      const baseline = computeSeasonalBaseline(farm.state, farm.cropType, month);
+      insights[farm.id] = generateInsights(
+        farm,
+        result.current.ndvi,
+        undefined,
+        baseline
+      );
     });
+
     setScanResults(results);
+    setFarmInsights(insights);
     if (!selectedFarmId && farms.length > 0) {
       setSelectedFarmId(farms[0].id);
     }
@@ -655,6 +677,85 @@ export default function SatellitePage() {
               </CardContent>
             </Card>
           </div>
+
+          {/* ── Farm Intelligence Summary ────────────────────────────────── */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2">
+                  <Brain className="w-4 h-4 text-green-400" />
+                  Farm Intelligence Summary
+                </CardTitle>
+                <Badge variant="green" size="sm">
+                  {farms.length} farm{farms.length !== 1 ? "s" : ""} analysed
+                </Badge>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {farms.map((farm) => {
+                  const ndvi = ndviScores[farm.id] ?? 0;
+                  const hs = computeHealthScore(ndvi);
+                  const topInsight = farmInsights[farm.id]?.[0];
+                  const isSelected = farm.id === selectedFarmId;
+                  return (
+                    <button
+                      key={farm.id}
+                      onClick={() => setSelectedFarmId(farm.id)}
+                      className={`text-left p-4 rounded-2xl border transition-all ${
+                        isSelected
+                          ? "border-green-500/30 bg-green-500/5"
+                          : "border-border bg-card hover:border-green-500/20"
+                      }`}
+                    >
+                      <div className="flex items-center gap-3 mb-3">
+                        <HealthScoreRing
+                          healthScore={hs}
+                          size={56}
+                          strokeWidth={5}
+                        />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-semibold text-foreground truncate">
+                            {farm.name}
+                          </p>
+                          <p className="text-xs text-muted-foreground/50 truncate">
+                            {farm.cropType} · {farm.areaHectares.toFixed(1)} ha
+                          </p>
+                          <p
+                            className={`text-xs font-mono mt-0.5 ${healthColorClass(hs.color)}`}
+                          >
+                            NDVI {ndvi.toFixed(3)}
+                          </p>
+                        </div>
+                      </div>
+                      {topInsight && (
+                        <InsightCard insight={topInsight} compact />
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* ── Selected farm insights detail ─────────────────────────────── */}
+          {selectedFarm && farmInsights[selectedFarm.id]?.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Activity className="w-4 h-4 text-muted-foreground/60" />
+                  {selectedFarm.name} — Intelligence Insights
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid sm:grid-cols-2 gap-3">
+                  {farmInsights[selectedFarm.id].map((insight) => (
+                    <InsightCard key={insight.id} insight={insight} />
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* ── Band analysis + integration status ─────────────────────────── */}
           <div className="grid lg:grid-cols-3 gap-6">
