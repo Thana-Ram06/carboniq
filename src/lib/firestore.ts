@@ -225,6 +225,69 @@ export async function getFarmSatelliteAnalytics(
   );
 }
 
+// ── SATELLITE SCANS (Phase 2) ────────────────────────────────────────────────
+
+export interface SatelliteScanRecord {
+  id: string;
+  farmId: string;
+  userId: string;
+  ndvi: number;
+  ndwi: number;
+  evi: number;
+  savi: number;
+  vegetationCoverage: number;
+  moistureIndex: number;
+  cloudCoverage: number;
+  healthStatus: string;
+  trend: string;
+  source: "sentinel_hub" | "computed";
+  scannedAt: import("firebase/firestore").Timestamp;
+}
+
+export async function saveSatelliteScan(
+  scan: Omit<SatelliteScanRecord, "id" | "scannedAt">
+): Promise<string> {
+  const ref = await addDoc(
+    collection(db(), "satellite_scans"),
+    { ...scan, scannedAt: serverTimestamp() }
+  );
+  // Update latest NDVI on the farm doc for fast reads
+  await updateDoc(doc(db(), COLLECTIONS.FARMS, scan.farmId), {
+    "latestNDVI.ndvi":  scan.ndvi,
+    "latestNDVI.scannedAt": serverTimestamp(),
+    updatedAt: serverTimestamp(),
+  });
+  return ref.id;
+}
+
+export async function getLatestSatelliteScan(
+  farmId: string
+): Promise<SatelliteScanRecord | null> {
+  const q = query(
+    collection(db(), "satellite_scans"),
+    where("farmId", "==", farmId),
+    orderBy("scannedAt", "desc"),
+    limit(1)
+  );
+  const snap = await getDocs(q);
+  if (snap.empty) return null;
+  return { id: snap.docs[0].id, ...snap.docs[0].data() } as SatelliteScanRecord;
+}
+
+export async function getUserLatestScans(
+  userId: string,
+  count = 20
+): Promise<SatelliteScanRecord[]> {
+  const q = query(
+    collection(db(), "satellite_scans"),
+    where("userId", "==", userId),
+    orderBy("scannedAt", "desc"),
+    limit(count)
+  );
+  const snap = await getDocs(q);
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() }) as SatelliteScanRecord);
+}
+
 // ──────────────────────────────────────────
 // REPORTS
 // ──────────────────────────────────────────
