@@ -8,6 +8,7 @@ import {
   LayoutDashboard, Map, Satellite, BarChart3, FileText,
   Settings, ChevronLeft, ChevronRight, LogOut, HelpCircle,
   X, Camera, ShieldCheck, Building2, Shield, Brain,
+  Link2, Globe, Activity, Key, BookOpen,
 } from "lucide-react";
 import { VasudhaLogo, VasudhaIcon } from "@/components/ui/vasudha-logo";
 import { cn } from "@/lib/utils";
@@ -24,9 +25,15 @@ const NAV_ITEMS: Array<{ label: string; href: string; icon: typeof LayoutDashboa
   { label: "Evidence",   href: "/evidence",   icon: Camera },
   { label: "Audit",      href: "/audit",      icon: ShieldCheck },
   { label: "Reports",      href: "/reports",      icon: FileText },
-  { label: "Intelligence", href: "/intelligence", icon: Brain },
-  { label: "Pilot",        href: "/pilot",        icon: Building2, roles: ["admin", "org_manager"] },
-  { label: "Admin",        href: "/admin",         icon: Shield,    roles: ["admin"] },
+  { label: "Intelligence", href: "/intelligence",  icon: Brain },
+  { label: "Regional",     href: "/regional",      icon: Globe },
+  { label: "Integrations", href: "/integrations",  icon: Link2 },
+  { label: "Pipelines",    href: "/pipelines",     icon: Activity },
+  { label: "API Portal",   href: "/api-portal",    icon: Key },
+  { label: "Methodology",  href: "/methodology",   icon: BookOpen },
+  { label: "Organization", href: "/organization",  icon: Building2 },
+  { label: "Pilot",        href: "/pilot",         icon: Building2, roles: ["admin", "org_manager"] },
+  { label: "Admin",        href: "/admin",          icon: Shield,    roles: ["admin"] },
 ];
 
 const BOTTOM_ITEMS = [

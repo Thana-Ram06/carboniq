@@ -896,3 +896,366 @@ export type IndianState =
   | "Uttar Pradesh"
   | "West Bengal"
   | "Other";
+
+// ============================================================
+// Phase 10 — External Integration & Scale-Ready Infrastructure
+// ============================================================
+
+// GEE Integration
+export type GEETaskStatus = "PENDING" | "RUNNING" | "COMPLETED" | "FAILED" | "CANCELLED";
+export type GEEBandType = "B2" | "B3" | "B4" | "B8" | "B11" | "B12" | "NDVI" | "NDWI" | "EVI";
+export type GEESatellite = "Sentinel-2" | "Landsat-8" | "Landsat-9" | "MODIS";
+
+export interface GEEVegetationComposite {
+  regionId: string;
+  regionName: string;
+  compositeType: "monthly" | "seasonal" | "annual";
+  startDate: string;
+  endDate: string;
+  satellite: GEESatellite;
+  meanNDVI: number;
+  medianNDVI: number;
+  stdNDVI: number;
+  pixelCount: number;
+  cloudFreePct: number;
+  areaCoveredKmSq: number;
+}
+
+export interface GEETask {
+  taskId: string;
+  type: "NDVI_COMPOSITE" | "VEGETATION_TREND" | "DROUGHT_ANALYSIS" | "CROP_MAPPING" | "CARBON_ESTIMATE";
+  status: GEETaskStatus;
+  region: string;
+  satellite: GEESatellite;
+  startedAt: string;
+  completedAt?: string;
+  progressPct: number;
+  resultSummary?: GEEVegetationComposite;
+  errorMessage?: string;
+}
+
+// IMD Weather Integration
+export interface IMDWeatherStation {
+  stationId: string;
+  stationName: string;
+  state: string;
+  district: string;
+  latitude: number;
+  longitude: number;
+  elevation: number;
+}
+
+export interface IMDWeatherObservation {
+  stationId: string;
+  stationName: string;
+  date: string;
+  maxTempC: number;
+  minTempC: number;
+  rainfallMm: number;
+  relativeHumidityPct: number;
+  windSpeedKmh: number;
+  solarRadiationMJm2?: number;
+}
+
+export interface IMDSeasonalForecast {
+  season: "Kharif" | "Rabi" | "Zaid";
+  year: number;
+  state: string;
+  rainfallDeparturePct: number;
+  temperatureAnomalyC: number;
+  droughtProbability: number;
+  floodProbability: number;
+  forecastConfidence: number;
+  issuedDate: string;
+}
+
+// ICAR Crop Baselines
+export interface ICARCropBaseline {
+  cropType: CropType;
+  state: string;
+  district?: string;
+  season: "Kharif" | "Rabi" | "Zaid" | "Annual";
+  yieldTonnesHa: number;
+  areaMha: number;
+  productionMt: number;
+  irrigatedPct: number;
+  year: number;
+  source: "ICAR" | "MoAFW" | "State-DoA";
+}
+
+// Copernicus / Sentinel
+export type CopernicusProduct = "S1_SAR" | "S2_MSI" | "S3_OLCI" | "S5P_TROPOMI";
+
+export interface CopernicusScene {
+  productId: string;
+  product: CopernicusProduct;
+  acquisitionDate: string;
+  orbitNumber: number;
+  processingLevel: "L1" | "L2A" | "L2B";
+  cloudCoverPct: number;
+  sizeGb: number;
+  status: "available" | "downloading" | "processed" | "archived";
+}
+
+// ISRO Bhuvan
+export interface BhuvanLayer {
+  layerId: string;
+  name: string;
+  category: "LULC" | "Soil" | "Watershed" | "Administrative" | "Elevation" | "Crop";
+  resolution: number;
+  lastUpdated: string;
+  wmsEndpoint: string;
+  coverageStates: string[];
+}
+
+export interface BhuvanNDVIData {
+  districtCode: string;
+  districtName: string;
+  state: string;
+  date: string;
+  meanNDVI: number;
+  areaKmSq: number;
+  vegetationCovPct: number;
+  anomalyFlag: boolean;
+}
+
+// Regional Processing
+export type RegionalScanScope = "district" | "state" | "organization";
+export type RegionalScanStatus = "queued" | "processing" | "completed" | "failed";
+
+export interface RegionalScanJob {
+  id: string;
+  scope: RegionalScanScope;
+  regionName: string;
+  regionCode: string;
+  state: string;
+  farmCount: number;
+  status: RegionalScanStatus;
+  progressPct: number;
+  startedAt: string;
+  completedAt?: string;
+  triggeredBy: string;
+}
+
+export interface DistrictReport {
+  districtName: string;
+  state: string;
+  totalFarms: number;
+  totalAreaHa: number;
+  avgNDVI: number;
+  avgCarbonTonnesHa: number;
+  avgYieldTha: number;
+  anomalyCount: number;
+  droughtRiskPct: number;
+  percentileVsState: number;
+  generatedAt: string;
+}
+
+export interface StateReport {
+  state: string;
+  totalFarms: number;
+  totalAreaHa: number;
+  totalCarbonMt: number;
+  avgNDVI: number;
+  topDistrict: string;
+  bottomDistrict: string;
+  droughtAffectedDistrictsPct: number;
+  yieldIndexVsNational: number;
+  generatedAt: string;
+}
+
+// External API System
+export type APIKeyStatus = "active" | "suspended" | "revoked" | "expired";
+export type APIKeyScope = "read:farms" | "read:ndvi" | "read:carbon" | "read:anomalies" | "read:benchmarks" | "write:farms" | "admin";
+
+export interface APIKey {
+  id: string;
+  name: string;
+  keyPreview: string;
+  userId: string;
+  orgId?: string;
+  scopes: APIKeyScope[];
+  status: APIKeyStatus;
+  rateLimit: number;
+  dailyQuota: number;
+  createdAt: string;
+  expiresAt?: string;
+  lastUsedAt?: string;
+  totalCalls: number;
+}
+
+export interface APIUsageEntry {
+  endpoint: string;
+  callsToday: number;
+  callsThisMonth: number;
+  avgResponseMs: number;
+  errorRate: number;
+}
+
+// Enterprise Multi-Tenancy
+export type OrgTier = "starter" | "professional" | "enterprise";
+export type OrgMemberRole = "owner" | "admin" | "analyst" | "viewer";
+
+export interface OrganizationWorkspace {
+  id: string;
+  name: string;
+  slug: string;
+  tier: OrgTier;
+  contactEmail: string;
+  state: string;
+  farmCount: number;
+  memberCount: number;
+  storageUsedGb: number;
+  apiCallsThisMonth: number;
+  createdAt: string;
+  allowExternalAPI: boolean;
+  retentionDays: number;
+}
+
+export interface WorkspaceMember {
+  userId: string;
+  email: string;
+  name: string;
+  role: OrgMemberRole;
+  joinedAt: string;
+  lastActiveAt?: string;
+  farmCount: number;
+}
+
+export interface OrgAnalytics {
+  orgId: string;
+  month: string;
+  activeUsers: number;
+  totalFarms: number;
+  scansPerformed: number;
+  reportsGenerated: number;
+  apiCallsExternal: number;
+  carbonTotalMt: number;
+  avgConfidenceScore: number;
+}
+
+// Advanced Forecasting
+export type DroughtSeverity = "none" | "mild" | "moderate" | "severe" | "extreme";
+
+export interface DroughtForecast {
+  regionName: string;
+  state: string;
+  forecastDate: string;
+  horizon30DayPct: number;
+  horizon60DayPct: number;
+  horizon90DayPct: number;
+  currentSPEI: number;
+  rainfallDeficitMm: number;
+  soilMoistureAnomaly: number;
+  cropStressIndex: number;
+  severity: DroughtSeverity;
+  confidence: number;
+}
+
+export interface SeasonalIntelligence {
+  season: "Kharif" | "Rabi" | "Zaid";
+  year: number;
+  state: string;
+  sowingWindowStart: string;
+  sowingWindowEnd: string;
+  peakGrowthMonth: string;
+  harvestWindowStart: string;
+  harvestWindowEnd: string;
+  projectedYieldIndex: number;
+  rainfallOutlook: "below-normal" | "normal" | "above-normal";
+  recommendedCrops: CropType[];
+  riskFactors: string[];
+  confidence: number;
+}
+
+export interface CropProductivityForecast {
+  cropType: CropType;
+  state: string;
+  season: string;
+  forecastYieldTha: number;
+  nationalBenchmarkTha: number;
+  performanceIndex: number;
+  probabilityBelowBenchmark: number;
+  climaticRiskScore: number;
+  irrigationAdequacyScore: number;
+  forecastConfidence: number;
+}
+
+// Pipeline System
+export type PipelineStage = "ingest" | "validate" | "transform" | "compute" | "store" | "notify";
+export type PipelineStatus = "idle" | "running" | "completed" | "failed" | "retrying";
+
+export interface PipelineStageState {
+  status: PipelineStatus;
+  durationMs?: number;
+  error?: string;
+}
+
+export interface PipelineJob {
+  id: string;
+  name: string;
+  type: "ndvi_batch" | "carbon_recalc" | "anomaly_sweep" | "benchmark_refresh" | "forecast_update" | "regional_scan";
+  status: PipelineStatus;
+  currentStage: PipelineStage;
+  stages: Record<PipelineStage, PipelineStageState>;
+  itemsTotal: number;
+  itemsProcessed: number;
+  startedAt: string;
+  completedAt?: string;
+  retryCount: number;
+  triggeredBy: "schedule" | "manual" | "webhook";
+}
+
+export interface PipelineMetrics {
+  avgThroughputPerMin: number;
+  p50LatencyMs: number;
+  p95LatencyMs: number;
+  successRate: number;
+  errorRate: number;
+  queueDepth: number;
+  activeWorkers: number;
+  totalJobsToday: number;
+}
+
+// Infrastructure Observability
+export interface APIHealthMetric {
+  endpoint: string;
+  p50Ms: number;
+  p95Ms: number;
+  requestsPerMin: number;
+  errorRate: number;
+  status: "healthy" | "degraded" | "down";
+}
+
+export interface InfrastructureStatus {
+  timestamp: string;
+  overallStatus: "operational" | "degraded" | "incident";
+  components: {
+    firestore: "up" | "degraded" | "down";
+    storage: "up" | "degraded" | "down";
+    auth: "up" | "degraded" | "down";
+    satellite: "up" | "degraded" | "down";
+    externalAPIs: "up" | "degraded" | "down";
+    pipeline: "up" | "degraded" | "down";
+  };
+  activeIncidents: number;
+  uptimePct30d: number;
+}
+
+// Map Infrastructure
+export interface HeatmapDataPoint {
+  lat: number;
+  lng: number;
+  value: number;
+  label?: string;
+}
+
+export interface RegionalCluster {
+  id: string;
+  lat: number;
+  lng: number;
+  count: number;
+  avgNDVI: number;
+  avgCarbon: number;
+  bounds: [[number, number], [number, number]];
+}

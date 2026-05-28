@@ -91,4 +91,18 @@ export const COLLECTIONS = {
   YIELD_FORECASTS: "yield_forecasts",
   FORECAST_HISTORY: "forecast_history",
   CONFIDENCE_MODELS: "confidence_models",
+  // Phase 10 — External Integration & Scale
+  GEE_TASKS: "gee_tasks",
+  REGIONAL_SCANS: "regional_scans",
+  DISTRICT_REPORTS: "district_reports",
+  STATE_REPORTS: "state_reports",
+  API_KEYS: "api_keys",
+  API_USAGE: "api_usage",
+  ORG_WORKSPACES: "org_workspaces",
+  ORG_MEMBERS: "org_members",
+  ORG_ANALYTICS: "org_analytics",
+  DROUGHT_FORECASTS: "drought_forecasts",
+  SEASONAL_INTEL: "seasonal_intel",
+  PIPELINE_JOBS: "pipeline_jobs",
+  INFRA_STATUS: "infra_status",
 } as const;

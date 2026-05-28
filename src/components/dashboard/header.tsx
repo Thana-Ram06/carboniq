@@ -21,6 +21,12 @@ const BREADCRUMBS: Record<string, string> = {
   "/pilot": "Pilot Management",
   "/admin": "Admin Superpanel",
   "/intelligence": "AI Intelligence",
+  "/regional": "Regional Analytics",
+  "/integrations": "External Integrations",
+  "/pipelines": "Data Pipelines",
+  "/api-portal": "API Portal",
+  "/methodology": "Scientific Methodology",
+  "/organization": "Organization",
 };
 
 interface HeaderProps {
