@@ -7,6 +7,7 @@ import { Header } from "@/components/dashboard/header";
 import { useAuth } from "@/hooks/use-auth";
 import { RoleProvider } from "@/contexts/role-context";
 import { VasudhaLogo } from "@/components/ui/vasudha-logo";
+import { OfflineIndicator } from "@/components/ui/OfflineIndicator";
 
 export default function DashboardLayout({
   children,
@@ -56,6 +57,7 @@ export default function DashboardLayout({
         <Sidebar mobileOpen={mobileOpen} onClose={() => setMobileOpen(false)} />
         <div className="flex flex-col flex-1 overflow-hidden min-w-0">
           <Header onMenuClick={() => setMobileOpen((v) => !v)} />
+          <OfflineIndicator />
           <main className="flex-1 overflow-y-auto">
             <div className="p-4 md:p-6 max-w-screen-2xl">{children}</div>
           </main>

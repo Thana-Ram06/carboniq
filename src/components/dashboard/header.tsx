@@ -6,6 +6,7 @@ import { Sun, Moon, Search, ChevronRight, Menu } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/hooks/use-auth";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
+import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
 import Image from "next/image";
 
 const BREADCRUMBS: Record<string, string> = {
@@ -67,6 +68,11 @@ export function Header({ onMenuClick }: HeaderProps) {
           <span className="text-xs">Search...</span>
           <kbd className="ml-1 text-xs border border-border rounded px-1.5 py-0.5 text-muted-foreground/60 font-mono">⌘K</kbd>
         </button>
+
+        {/* Language switcher — desktop only */}
+        <div className="hidden lg:flex">
+          <LanguageSwitcher compact />
+        </div>
 
         {/* Live notification bell */}
         <NotificationBell />

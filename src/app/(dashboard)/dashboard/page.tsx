@@ -19,6 +19,8 @@ import {
 import { useAuth } from "@/hooks/use-auth";
 import { useFarms } from "@/hooks/use-farms";
 import { useActivity } from "@/hooks/use-activity";
+import { useLanguage } from "@/hooks/use-language";
+import { RegionalSummary } from "@/components/analytics/RegionalSummary";
 import { StatsCard } from "@/components/dashboard/stats-card";
 import { CarbonScoreChart, NDVIChart } from "@/components/dashboard/carbon-chart";
 import { ActivityFeed } from "@/components/dashboard/activity-feed";
@@ -50,11 +52,11 @@ function MapSkeleton() {
   );
 }
 
-function TimeOfDay() {
+function useGreeting(t: { dashboard: { greeting_morning: string; greeting_afternoon: string; greeting_evening: string } }) {
   const h = new Date().getHours();
-  if (h < 12) return "Good morning";
-  if (h < 17) return "Good afternoon";
-  return "Good evening";
+  if (h < 12) return t.dashboard.greeting_morning;
+  if (h < 17) return t.dashboard.greeting_afternoon;
+  return t.dashboard.greeting_evening;
 }
 
 // Compute dashboard-level intelligence from farms
@@ -144,6 +146,8 @@ export default function DashboardPage() {
   const { user } = useAuth();
   const { farms, loading: farmsLoading } = useFarms(user?.uid ?? null);
   const { events: activityEvents, loading: activityLoading } = useActivity(user?.uid ?? null, 10);
+  const { t } = useLanguage();
+  const greeting = useGreeting(t);
   const intel = useDashboardIntelligence(farms);
   const firstName = user?.displayName?.split(" ")[0] ?? "there";
 
@@ -172,7 +176,7 @@ export default function DashboardPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-1">
         <div>
           <h1 className="text-xl md:text-2xl font-semibold text-foreground">
-            <TimeOfDay />, {firstName}
+            {greeting}, {firstName}
           </h1>
           <p className="text-sm text-muted-foreground mt-0.5">
             {farms.length > 0
@@ -342,7 +346,7 @@ export default function DashboardPage() {
             <CardContent>
               {intel?.ndviChartData.length ? (
                 <>
-                  <NDVIChart data={intel.ndviChartData} className="h-[160px]" />
+                  <NDVIChart data={intel.ndviChartData} className="h-[140px]" />
                   <div className="mt-3 grid grid-cols-2 gap-2">
                     <div className="p-2.5 rounded-xl bg-muted/60 border border-border">
                       <p className="text-[10px] text-muted-foreground mb-1">Peak</p>
@@ -359,10 +363,22 @@ export default function DashboardPage() {
                   </div>
                 </>
               ) : (
-                <div className="h-[160px] flex items-center justify-center text-muted-foreground/40 text-sm">
+                <div className="h-[140px] flex items-center justify-center text-muted-foreground/40 text-sm">
                   Add farms to see NDVI
                 </div>
               )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="flex items-center gap-2">
+                <Map className="w-4 h-4 text-muted-foreground/60" />
+                Regional Intelligence
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <RegionalSummary farms={farms} />
             </CardContent>
           </Card>
         </div>
