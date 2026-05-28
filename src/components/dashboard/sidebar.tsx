@@ -7,15 +7,16 @@ import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard, Map, Satellite, BarChart3, FileText,
   Settings, ChevronLeft, ChevronRight, LogOut, HelpCircle,
-  X, Camera, ShieldCheck,
+  X, Camera, ShieldCheck, Building2, Shield,
 } from "lucide-react";
 import { VasudhaLogo, VasudhaIcon } from "@/components/ui/vasudha-logo";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/use-auth";
 import { useRole } from "@/hooks/use-role";
 import { getRoleLabel, getRoleColor } from "@/lib/rbac/permissions";
+import type { UserRole } from "@/types";
 
-const NAV_ITEMS = [
+const NAV_ITEMS: Array<{ label: string; href: string; icon: typeof LayoutDashboard; roles?: UserRole[] }> = [
   { label: "Dashboard",  href: "/dashboard", icon: LayoutDashboard },
   { label: "Farms",      href: "/farms",      icon: Map },
   { label: "Satellite",  href: "/satellite",  icon: Satellite },
@@ -23,6 +24,8 @@ const NAV_ITEMS = [
   { label: "Evidence",   href: "/evidence",   icon: Camera },
   { label: "Audit",      href: "/audit",      icon: ShieldCheck },
   { label: "Reports",    href: "/reports",    icon: FileText },
+  { label: "Pilot",      href: "/pilot",      icon: Building2, roles: ["admin", "org_manager"] },
+  { label: "Admin",      href: "/admin",      icon: Shield,    roles: ["admin"] },
 ];
 
 const BOTTOM_ITEMS = [
@@ -106,7 +109,7 @@ export function Sidebar({ mobileOpen = false, onClose }: SidebarProps) {
       {/* Navigation */}
       <nav className="flex-1 px-2 py-4 overflow-y-auto overflow-x-hidden">
         <div className="flex flex-col gap-0.5">
-          {NAV_ITEMS.map((item) => {
+          {NAV_ITEMS.filter((item) => !item.roles || item.roles.includes(role)).map((item) => {
             const active =
               pathname === item.href ||
               (item.href !== "/dashboard" && pathname.startsWith(item.href));

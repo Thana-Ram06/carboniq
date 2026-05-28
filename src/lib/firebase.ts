@@ -78,4 +78,11 @@ export const COLLECTIONS = {
   NOTIFICATIONS: "notifications",
   ACTIVITY_EVENTS: "activity_events",
   USER_PROFILES: "user_profiles",
+  // Phase 8 — Scalability & Observability
+  PLATFORM_LOGS: "platform_logs",
+  PILOT_ORGS: "pilot_orgs",
+  FIELD_CAMPAIGNS: "field_campaigns",
+  DATA_QUALITY: "data_quality",
+  ADMIN_ACTIVITY: "admin_activity",
+  USAGE_METRICS: "usage_metrics",
 } as const;

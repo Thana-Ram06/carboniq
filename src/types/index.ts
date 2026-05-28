@@ -610,6 +610,128 @@ export interface ConfidenceScore {
 }
 
 // ──────────────────────────────────────────
+// PHASE 8 — SCALABILITY & OBSERVABILITY
+// ──────────────────────────────────────────
+
+export type PlatformLogLevel = "info" | "warn" | "error" | "critical";
+export type PlatformLogCategory =
+  | "scan" | "evidence" | "audit" | "sync" | "auth" | "api" | "system" | "quality";
+
+export interface PlatformLog {
+  id: string;
+  level: PlatformLogLevel;
+  category: PlatformLogCategory;
+  message: string;
+  userId?: string;
+  farmId?: string;
+  orgId?: string;
+  metadata?: Record<string, string | number | boolean>;
+  resolved?: boolean;
+  createdAt: Timestamp;
+}
+
+export type PilotStatus = "onboarding" | "active" | "suspended" | "completed";
+
+export interface PilotOrganization {
+  id: string;
+  name: string;
+  district: string;
+  state: string;
+  region: string;
+  contactName: string;
+  contactEmail: string;
+  farmCount: number;
+  farmerCount: number;
+  status: PilotStatus;
+  startDate: string;
+  endDate?: string;
+  createdBy: string;
+  createdAt: Timestamp;
+}
+
+export type CampaignStatus = "planned" | "active" | "completed" | "cancelled";
+
+export interface FieldCampaign {
+  id: string;
+  orgId: string;
+  name: string;
+  district: string;
+  state: string;
+  targetFarms: number;
+  completedFarms: number;
+  startDate: string;
+  endDate?: string;
+  status: CampaignStatus;
+  fieldAgentId: string;
+  createdAt: Timestamp;
+}
+
+export type DataQualityGrade = "A" | "B" | "C" | "D" | "F";
+
+export interface DataQualityScore {
+  id: string;
+  farmId: string;
+  userId: string;
+  overallScore: number;
+  ndviConsistency: number;
+  evidenceCompleteness: number;
+  boundaryAccuracy: number;
+  auditCoverage: number;
+  duplicateRisk: number;
+  flags: string[];
+  grade: DataQualityGrade;
+  computedAt: Timestamp;
+}
+
+export interface AdminActivity {
+  id: string;
+  adminId: string;
+  adminEmail: string;
+  action: string;
+  targetType: "user" | "farm" | "audit" | "report" | "pilot" | "system";
+  targetId?: string;
+  details: string;
+  createdAt: Timestamp;
+}
+
+export interface UsageMetrics {
+  id: string;
+  date: string;
+  firestoreReads: number;
+  firestoreWrites: number;
+  storageGb: number;
+  apiCalls: number;
+  scanJobs: number;
+  evidenceUploads: number;
+  estimatedCostUsd: number;
+}
+
+export type HealthStatus = "healthy" | "degraded" | "down";
+
+export interface SystemHealthStatus {
+  overall: HealthStatus;
+  database: HealthStatus;
+  storage: HealthStatus;
+  scanQueue: HealthStatus;
+  notifications: HealthStatus;
+  lastChecked: string;
+  uptimePct: number;
+}
+
+export interface AdminPlatformStats {
+  totalUsers: number;
+  totalFarms: number;
+  totalAreaHa: number;
+  totalEvidence: number;
+  pendingAudits: number;
+  activeScans: number;
+  errorCount24h: number;
+  totalCarbonTonnes: number;
+  activePilots: number;
+  totalCampaigns: number;
+}
+
+// ──────────────────────────────────────────
 // UI TYPES
 // ──────────────────────────────────────────
 

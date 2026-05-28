@@ -21,6 +21,8 @@ import { useFarms } from "@/hooks/use-farms";
 import { useActivity } from "@/hooks/use-activity";
 import { useLanguage } from "@/hooks/use-language";
 import { RegionalSummary } from "@/components/analytics/RegionalSummary";
+import { DataQualityPanel } from "@/components/quality/DataQualityPanel";
+import { ExportPanel } from "@/components/export/ExportPanel";
 import { StatsCard } from "@/components/dashboard/stats-card";
 import { CarbonScoreChart, NDVIChart } from "@/components/dashboard/carbon-chart";
 import { ActivityFeed } from "@/components/dashboard/activity-feed";
@@ -489,6 +491,22 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
         </div>
+      </div>
+
+      {/* Data Quality + Export */}
+      <div className="grid lg:grid-cols-2 gap-4 md:gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <BarChart3 className="w-4 h-4 text-green-400" />
+              Data Quality Engine
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <DataQualityPanel farms={farms} />
+          </CardContent>
+        </Card>
+        <ExportPanel farms={farms} />
       </div>
     </div>
   );
