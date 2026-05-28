@@ -1464,3 +1464,227 @@ export interface ReliabilityScore {
   slaCompliancePct: number;
   trend: "improving" | "stable" | "degrading";
 }
+
+// ============================================================
+// Phase 12 — Ecosystem Deployment & Operational Adoption Layer
+// ============================================================
+
+// Public Farm Portal
+export type SustainabilityTier = "platinum" | "gold" | "silver" | "bronze";
+
+export interface PublicFarmReport {
+  farmId: string;
+  farmName: string;
+  ownerName: string;
+  state: string;
+  district: string;
+  areaHectares: number;
+  cropType: string;
+  sustainabilityTier: SustainabilityTier;
+  carbonScoreTonnes: number;
+  ndviScore: number;
+  ndviTrend: "improving" | "stable" | "declining";
+  verificationStatus: "verified" | "pending" | "unverified";
+  verifiedBy?: string;
+  lastUpdated: string;
+  reportUrl: string;
+  badges: string[];
+  carbonCredits: number;
+  confidenceLevel: number;
+}
+
+// Partner & NGO Onboarding
+export type OnboardingStepStatus = "pending" | "in_progress" | "completed" | "skipped";
+export type PartnerType = "ngo" | "government" | "research" | "enterprise" | "cooperative";
+
+export interface OnboardingStep {
+  id: string;
+  title: string;
+  description: string;
+  status: OnboardingStepStatus;
+  completedAt?: string;
+  required: boolean;
+}
+
+export interface PartnerOrg {
+  id: string;
+  name: string;
+  type: PartnerType;
+  state: string;
+  contactEmail: string;
+  contactName: string;
+  farmCount: number;
+  activeSince: string;
+  onboardingProgress: number;
+  tier: "starter" | "growth" | "enterprise";
+  status: "active" | "onboarding" | "suspended" | "pending";
+}
+
+export interface OnboardingFlow {
+  orgId: string;
+  orgName: string;
+  partnerType: PartnerType;
+  steps: OnboardingStep[];
+  overallProgress: number;
+  startedAt: string;
+  estimatedCompletionDays: number;
+}
+
+// Government Regional Monitoring
+export interface StateMonitorSummary {
+  state: string;
+  activeFarms: number;
+  totalAreaHa: number;
+  avgCarbonScore: number;
+  avgNdviScore: number;
+  droughtRiskLevel: "low" | "moderate" | "high" | "critical";
+  cropDiversity: number;
+  verifiedFarms: number;
+  alertCount: number;
+  lastScanDate: string;
+}
+
+export interface DistrictMonitor {
+  district: string;
+  state: string;
+  farmCount: number;
+  avgNdvi: number;
+  carbonTonnes: number;
+  rainfallMm: number;
+  soilMoistureIndex: number;
+  riskScore: number;
+  dominantCrop: string;
+}
+
+// Deployment Templates
+export type DeploymentTemplateType = "district" | "state" | "ngo" | "enterprise" | "pilot";
+
+export interface DeploymentTemplate {
+  id: string;
+  name: string;
+  type: DeploymentTemplateType;
+  description: string;
+  estimatedFarms: number;
+  setupDays: number;
+  featuresIncluded: string[];
+  requirements: string[];
+  usedBy: number;
+}
+
+export interface PilotRollout {
+  id: string;
+  name: string;
+  region: string;
+  partnerOrg: string;
+  targetFarms: number;
+  activeFarms: number;
+  startDate: string;
+  targetDate: string;
+  progressPct: number;
+  status: "planning" | "active" | "completed" | "paused";
+  milestones: { label: string; achieved: boolean; date: string }[];
+}
+
+// Compliance Reporting
+export type ComplianceStandard = "ISO14064" | "UNFCCC" | "GoldStandard" | "VCS" | "IPCC";
+
+export interface ComplianceReport {
+  id: string;
+  title: string;
+  standard: ComplianceStandard;
+  period: string;
+  farmsIncluded: number;
+  totalCarbonTonnes: number;
+  verificationStatus: "draft" | "pending_review" | "approved" | "submitted";
+  generatedAt: string;
+  methodology: string;
+  signedBy?: string;
+}
+
+export interface AuditExportRecord {
+  farmId: string;
+  farmName: string;
+  period: string;
+  carbonTonnes: number;
+  ndviAvg: number;
+  evidenceCount: number;
+  auditorId: string;
+  verifiedAt: string;
+  standard: ComplianceStandard;
+}
+
+// Interoperability & Webhooks
+export type WebhookEvent =
+  | "farm.created" | "farm.updated" | "farm.deleted"
+  | "carbon.calculated" | "report.generated" | "audit.completed"
+  | "incident.created" | "scan.completed";
+
+export interface WebhookConfig {
+  id: string;
+  orgId: string;
+  url: string;
+  events: WebhookEvent[];
+  active: boolean;
+  secret: string;
+  lastTriggered?: string;
+  successCount: number;
+  failureCount: number;
+  createdAt: string;
+}
+
+export interface ExportConnector {
+  id: string;
+  name: string;
+  type: "csv" | "json" | "geojson" | "shapefile" | "pdf";
+  description: string;
+  endpoint: string;
+  lastExported?: string;
+  recordCount: number;
+}
+
+// Field Operations
+export interface FieldSOP {
+  id: string;
+  title: string;
+  category: "evidence_collection" | "boundary_survey" | "soil_sampling" | "crop_assessment" | "audit_review";
+  steps: { step: number; instruction: string; required: boolean }[];
+  estimatedMinutes: number;
+  lastRevised: string;
+  version: string;
+}
+
+export interface AuditorAssignment {
+  id: string;
+  auditorName: string;
+  auditorEmail: string;
+  region: string;
+  assignedFarms: number;
+  completedAudits: number;
+  pendingAudits: number;
+  avgCompletionDays: number;
+  status: "active" | "on_leave" | "overloaded";
+  nextDeadline: string;
+}
+
+// Ecosystem Analytics
+export interface PartnerAdoptionMetric {
+  orgName: string;
+  partnerType: PartnerType;
+  state: string;
+  farmsOnboarded: number;
+  monthlyScans: number;
+  reportingRate: number;
+  adoptionScore: number;
+  joinedMonthsAgo: number;
+}
+
+export interface EcosystemHealth {
+  totalPartners: number;
+  activePartners: number;
+  totalFarmsRegistered: number;
+  monthlyActiveOrgs: number;
+  avgOnboardingDays: number;
+  reportSubmissionRate: number;
+  verificationCoverageRate: number;
+  ecosystemScore: number;
+}

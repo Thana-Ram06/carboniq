@@ -32,6 +32,13 @@ const BREADCRUMBS: Record<string, string> = {
   "/cost":         "Cost Optimization",
   "/analytics":    "Production Analytics",
   "/devops":       "DevOps & Operations",
+  "/gov":          "Government Dashboard",
+  "/onboarding":   "Partner Onboarding",
+  "/deployment":   "Deployment Workflows",
+  "/compliance":   "Compliance Reporting",
+  "/interop":      "Interoperability",
+  "/field-ops":    "Field Operations",
+  "/ecosystem":    "Ecosystem Analytics",
 };
 
 interface HeaderProps {

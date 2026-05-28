@@ -10,6 +10,7 @@ import {
   X, Camera, ShieldCheck, Building2, Shield, Brain,
   Link2, Globe, Activity, Key, BookOpen,
   Server, Lock, DollarSign, TrendingUp, GitBranch,
+  Flag, Network, FileCheck, Clipboard, Globe2, Rocket, Users2,
 } from "lucide-react";
 import { VasudhaLogo, VasudhaIcon } from "@/components/ui/vasudha-logo";
 import { cn } from "@/lib/utils";
@@ -38,6 +39,13 @@ const NAV_ITEMS: Array<{ label: string; href: string; icon: typeof LayoutDashboa
   { label: "Cost",          href: "/cost",          icon: DollarSign },
   { label: "Analytics",     href: "/analytics",     icon: TrendingUp },
   { label: "DevOps",        href: "/devops",        icon: GitBranch },
+  { label: "Gov Dashboard", href: "/gov",           icon: Flag },
+  { label: "Partners",      href: "/onboarding",    icon: Users2 },
+  { label: "Deployment",    href: "/deployment",    icon: Rocket },
+  { label: "Compliance",    href: "/compliance",    icon: FileCheck },
+  { label: "Interop",       href: "/interop",       icon: Network },
+  { label: "Field Ops",     href: "/field-ops",     icon: Clipboard },
+  { label: "Ecosystem",     href: "/ecosystem",     icon: Globe2 },
   { label: "Pilot",         href: "/pilot",         icon: Building2, roles: ["admin", "org_manager"] },
   { label: "Admin",         href: "/admin",         icon: Shield,    roles: ["admin"] },
 ];
