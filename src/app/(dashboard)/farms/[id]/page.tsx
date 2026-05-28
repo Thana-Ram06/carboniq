@@ -20,6 +20,8 @@ import {
   CheckCircle2,
   ChevronRight,
   Pencil,
+  Cloud,
+  Shield,
 } from "lucide-react";
 import { getFarm } from "@/lib/firestore";
 import { computeFarmNDVI } from "@/lib/satellite/ndvi-engine";
@@ -41,6 +43,10 @@ import {
   formatHectares,
 } from "@/lib/utils";
 import { useAuth } from "@/hooks/use-auth";
+import { WeatherWidget } from "@/components/monitoring/WeatherWidget";
+import { RiskAlertCard, RiskScoreBadge } from "@/components/monitoring/RiskAlertCard";
+import { assessRisk, riskSeverityColor } from "@/lib/monitoring/risk-engine";
+import type { RiskAssessment } from "@/lib/monitoring/risk-engine";
 import type { Farm } from "@/types";
 import Link from "next/link";
 
@@ -186,6 +192,11 @@ export default function FarmDetailPage() {
 
   const carbon = useMemo(
     () => (farm ? computeCarbonIntelligence(farm, ndvi) : null),
+    [farm, ndvi]
+  );
+
+  const riskAssessment = useMemo<RiskAssessment | null>(
+    () => (farm ? assessRisk(farm, ndvi, null) : null),
     [farm, ndvi]
   );
 
@@ -531,6 +542,93 @@ export default function FarmDetailPage() {
                 </span>
               </span>
             </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* ── Weather + Risk Intelligence ──────────────────────────────────────── */}
+      <div className="grid lg:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Cloud className="w-4 h-4 text-blue-400" />
+              Weather Intelligence
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <WeatherWidget
+              lat={farm.coordinates.lat}
+              lng={farm.coordinates.lng}
+              farmId={farm.id}
+              userId={user?.uid}
+            />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2">
+                <Shield className="w-4 h-4 text-muted-foreground/60" />
+                Risk Assessment
+              </CardTitle>
+              {riskAssessment && (
+                <RiskScoreBadge
+                  score={riskAssessment.overallRisk}
+                  severity={riskAssessment.severity}
+                />
+              )}
+            </div>
+          </CardHeader>
+          <CardContent>
+            {riskAssessment ? (
+              <div className="space-y-3">
+                <div className="grid grid-cols-2 gap-2">
+                  {[
+                    { label: "Drought", value: riskAssessment.droughtRisk },
+                    { label: "Heat Stress", value: riskAssessment.heatStressRisk },
+                    { label: "Vegetation", value: riskAssessment.vegetationDeclineRisk },
+                    { label: "Irrigation", value: riskAssessment.irrigationStressRisk },
+                  ].map((r) => (
+                    <div key={r.label} className="p-2.5 rounded-xl bg-muted border border-border">
+                      <div className="flex justify-between text-xs mb-1.5">
+                        <span className="text-muted-foreground/60">{r.label}</span>
+                        <span className="font-mono text-foreground">{r.value}</span>
+                      </div>
+                      <div className="h-1.5 rounded-full bg-border overflow-hidden">
+                        <div
+                          className="h-full rounded-full"
+                          style={{
+                            width: `${r.value}%`,
+                            background: riskSeverityColor(
+                              r.value >= 75 ? "critical" :
+                              r.value >= 50 ? "high" :
+                              r.value >= 25 ? "medium" : "low"
+                            ),
+                          }}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                {riskAssessment.alerts.length > 0 ? (
+                  <div className="space-y-2">
+                    {riskAssessment.alerts.slice(0, 3).map((alert) => (
+                      <RiskAlertCard key={alert.id} alert={alert} compact />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2 text-xs text-green-400/80 py-1">
+                    <Shield className="w-3.5 h-3.5" />
+                    No active risk alerts detected
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-muted-foreground/50 text-sm">
+                Computing risk assessment…
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

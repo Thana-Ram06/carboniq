@@ -30,10 +30,12 @@ import { useFarms } from "@/hooks/use-farms";
 import { saveSatelliteScan } from "@/lib/firestore";
 import { computeHealthScore, healthColorClass } from "@/lib/intelligence/health-scoring";
 import { generateInsights } from "@/lib/intelligence/insights-engine";
-import type { Insight } from "@/types";
+import type { Insight, RiskAlert } from "@/types";
 import { computeSeasonalBaseline } from "@/lib/intelligence/historical-analytics";
 import { InsightCard } from "@/components/intelligence/InsightCard";
 import { HealthScoreRing } from "@/components/intelligence/HealthScoreRing";
+import { AlertStrip } from "@/components/monitoring/AlertStrip";
+import { assessRisk, riskSeverityColor } from "@/lib/monitoring/risk-engine";
 import {
   computeFarmNDVI,
   ndviStatusLabel,
@@ -164,6 +166,8 @@ export default function SatellitePage() {
   const [scanResults, setScanResults] = useState<Record<string, ComputedNDVI>>({});
   const [scanSources, setScanSources] = useState<Record<string, string>>({});
   const [farmInsights, setFarmInsights] = useState<Record<string, Insight[]>>({});
+  const [farmRisks, setFarmRisks] = useState<Record<string, number>>({});
+  const [globalAlerts, setGlobalAlerts] = useState<RiskAlert[]>([]);
 
   // ── Compute NDVI + intelligence for all farms on load ────────────────────
   useEffect(() => {
@@ -191,8 +195,22 @@ export default function SatellitePage() {
       );
     });
 
+    // Risk assessment per farm
+    const risks: Record<string, number> = {};
+    const allAlerts: RiskAlert[] = [];
+    farms.forEach((farm) => {
+      const ndvi = results[farm.id]?.current.ndvi ?? 0;
+      const risk = assessRisk(farm, ndvi, null);
+      risks[farm.id] = risk.overallRisk;
+      if (risk.severity === "high" || risk.severity === "critical") {
+        risk.alerts.forEach((a) => allAlerts.push(a));
+      }
+    });
+
     setScanResults(results);
     setFarmInsights(insights);
+    setFarmRisks(risks);
+    setGlobalAlerts(allAlerts.slice(0, 5));
     if (!selectedFarmId && farms.length > 0) {
       setSelectedFarmId(farms[0].id);
     }
@@ -317,6 +335,9 @@ export default function SatellitePage() {
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">
+      {/* ── Alert strip ────────────────────────────────────────────────────── */}
+      {globalAlerts.length > 0 && <AlertStrip alerts={globalAlerts} />}
+
       {/* ── Header ─────────────────────────────────────────────────────────── */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
@@ -392,6 +413,17 @@ export default function SatellitePage() {
                   />
                   {farm.name}
                   <span className="font-mono opacity-70">{ndvi.toFixed(2)}</span>
+                  {(farmRisks[farm.id] ?? 0) >= 25 && (
+                    <span
+                      className="w-1.5 h-1.5 rounded-full shrink-0"
+                      style={{
+                        background: riskSeverityColor(
+                          (farmRisks[farm.id] ?? 0) >= 75 ? "critical" :
+                          (farmRisks[farm.id] ?? 0) >= 50 ? "high" : "medium"
+                        ),
+                      }}
+                    />
+                  )}
                 </button>
               );
             })}
@@ -721,11 +753,32 @@ export default function SatellitePage() {
                           <p className="text-xs text-muted-foreground/50 truncate">
                             {farm.cropType} · {farm.areaHectares.toFixed(1)} ha
                           </p>
-                          <p
-                            className={`text-xs font-mono mt-0.5 ${healthColorClass(hs.color)}`}
-                          >
-                            NDVI {ndvi.toFixed(3)}
-                          </p>
+                          <div className="flex items-center gap-2 mt-0.5">
+                            <p className={`text-xs font-mono ${healthColorClass(hs.color)}`}>
+                              NDVI {ndvi.toFixed(3)}
+                            </p>
+                            {(farmRisks[farm.id] ?? 0) >= 25 && (
+                              <span
+                                className="text-[9px] px-1.5 py-0.5 rounded-md border font-semibold"
+                                style={{
+                                  background: `${riskSeverityColor(
+                                    (farmRisks[farm.id] ?? 0) >= 75 ? "critical" :
+                                    (farmRisks[farm.id] ?? 0) >= 50 ? "high" : "medium"
+                                  )}18`,
+                                  borderColor: `${riskSeverityColor(
+                                    (farmRisks[farm.id] ?? 0) >= 75 ? "critical" :
+                                    (farmRisks[farm.id] ?? 0) >= 50 ? "high" : "medium"
+                                  )}40`,
+                                  color: riskSeverityColor(
+                                    (farmRisks[farm.id] ?? 0) >= 75 ? "critical" :
+                                    (farmRisks[farm.id] ?? 0) >= 50 ? "high" : "medium"
+                                  ),
+                                }}
+                              >
+                                Risk {farmRisks[farm.id]}
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </div>
                       {topInsight && (

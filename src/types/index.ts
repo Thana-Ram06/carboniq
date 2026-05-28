@@ -336,6 +336,94 @@ export interface NDVIHistoryRecord {
 }
 
 // ──────────────────────────────────────────
+// MONITORING TYPES (Phase 4)
+// ──────────────────────────────────────────
+
+export type ScanInterval = "daily" | "weekly" | "monthly";
+
+export interface MonitoringConfig {
+  interval: ScanInterval;
+  autoEnabled: boolean;
+  lastScanAt?: string;
+  nextScanAt?: string;
+}
+
+export type RiskSeverity = "low" | "medium" | "high" | "critical";
+export type RiskAlertType =
+  | "drought"
+  | "heat_stress"
+  | "vegetation_decline"
+  | "irrigation_stress"
+  | "anomaly"
+  | "seasonal_lag";
+
+export interface RiskAlert {
+  id: string;
+  type: RiskAlertType;
+  severity: RiskSeverity;
+  title: string;
+  description: string;
+  metric?: string;
+  generatedAt: string;
+}
+
+export interface RiskAssessmentRecord {
+  id: string;
+  farmId: string;
+  userId: string;
+  overallRisk: number;
+  severity: RiskSeverity;
+  droughtRisk: number;
+  vegetationDeclineRisk: number;
+  heatStressRisk: number;
+  irrigationStressRisk: number;
+  alerts: RiskAlert[];
+  confidence: "low" | "medium" | "high";
+  computedAt: Timestamp;
+}
+
+export interface WeatherAnalyticsRecord {
+  id: string;
+  farmId: string;
+  userId: string;
+  rainfall7d: number;
+  avgMaxTemp: number;
+  avgMinTemp: number;
+  avgET0: number;
+  moistureDeficit: number;
+  droughtScore: number;
+  heatStressScore: number;
+  forecastRain3d: number;
+  fetchedAt: Timestamp;
+}
+
+export interface MonitoringJobRecord {
+  id: string;
+  farmId: string;
+  userId: string;
+  status: "queued" | "processing" | "completed" | "failed" | "retrying";
+  priority: "low" | "normal" | "high";
+  retryCount: number;
+  maxRetries: number;
+  error?: string;
+  triggeredBy: "auto" | "manual" | "cron";
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+}
+
+export interface FarmTimelineEvent {
+  id: string;
+  farmId: string;
+  userId: string;
+  type: "scan" | "insight" | "alert" | "weather" | "system";
+  title: string;
+  description: string;
+  severity?: RiskSeverity;
+  metadata?: Record<string, string | number>;
+  timestamp: Timestamp;
+}
+
+// ──────────────────────────────────────────
 // UI TYPES
 // ──────────────────────────────────────────
 

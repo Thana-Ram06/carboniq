@@ -64,4 +64,8 @@ export const COLLECTIONS = {
   FARM_INSIGHTS: "farm_insights",
   CARBON_ANALYTICS: "carbon_analytics",
   VEGETATION_SCORES: "vegetation_scores",
+  MONITORING_JOBS: "monitoring_jobs",
+  WEATHER_ANALYTICS: "weather_analytics",
+  RISK_ALERTS: "risk_alerts",
+  FARM_TIMELINES: "farm_timelines",
 } as const;

@@ -30,6 +30,12 @@ import type {
   CarbonAnalyticsRecord,
   VegetationScoreRecord,
   NDVIHistoryRecord,
+  MonitoringConfig,
+  MonitoringJobRecord,
+  WeatherAnalyticsRecord,
+  RiskAssessmentRecord,
+  FarmTimelineEvent,
+  RiskAlert,
 } from "@/types";
 import { quickCarbonEstimate } from "./carbon-estimation";
 
@@ -544,4 +550,195 @@ export async function getFarmNDVIHistory(
   );
   const snap = await getDocs(q);
   return snap.docs.map((d) => ({ id: d.id, ...d.data() }) as NDVIHistoryRecord);
+}
+
+// ──────────────────────────────────────────
+// MONITORING JOBS
+// ──────────────────────────────────────────
+
+export async function createMonitoringJob(data: {
+  farmId: string;
+  userId: string;
+  priority?: "low" | "normal" | "high";
+  triggeredBy?: "auto" | "manual" | "cron";
+}): Promise<string> {
+  const ref = await addDoc(collection(db(), COLLECTIONS.MONITORING_JOBS), {
+    farmId: data.farmId,
+    userId: data.userId,
+    status: "queued",
+    priority: data.priority ?? "normal",
+    retryCount: 0,
+    maxRetries: 3,
+    triggeredBy: data.triggeredBy ?? "manual",
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+  });
+  return ref.id;
+}
+
+export async function updateMonitoringJob(
+  jobId: string,
+  update: Partial<Pick<MonitoringJobRecord, "status" | "error" | "retryCount">>
+): Promise<void> {
+  await updateDoc(doc(db(), COLLECTIONS.MONITORING_JOBS, jobId), {
+    ...update,
+    updatedAt: serverTimestamp(),
+  });
+}
+
+export async function getActiveMonitoringJobs(
+  userId: string
+): Promise<MonitoringJobRecord[]> {
+  const q = query(
+    collection(db(), COLLECTIONS.MONITORING_JOBS),
+    where("userId", "==", userId),
+    where("status", "in", ["queued", "processing", "retrying"]),
+    orderBy("createdAt", "desc"),
+    limit(20)
+  );
+  const snap = await getDocs(q);
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() }) as MonitoringJobRecord);
+}
+
+// ──────────────────────────────────────────
+// WEATHER ANALYTICS
+// ──────────────────────────────────────────
+
+export async function saveWeatherAnalytics(data: {
+  farmId: string;
+  userId: string;
+  rainfall7d: number;
+  avgMaxTemp: number;
+  avgMinTemp: number;
+  avgET0: number;
+  moistureDeficit: number;
+  droughtScore: number;
+  heatStressScore: number;
+  forecastRain3d: number;
+}): Promise<void> {
+  const col = collection(db(), COLLECTIONS.WEATHER_ANALYTICS);
+  const q = query(col, where("farmId", "==", data.farmId));
+  const snap = await getDocs(q);
+  if (!snap.empty) {
+    await updateDoc(snap.docs[0].ref, { ...data, fetchedAt: serverTimestamp() });
+  } else {
+    await addDoc(col, { ...data, fetchedAt: serverTimestamp() });
+  }
+}
+
+export async function getLatestWeatherAnalytics(
+  farmId: string
+): Promise<WeatherAnalyticsRecord | null> {
+  const q = query(
+    collection(db(), COLLECTIONS.WEATHER_ANALYTICS),
+    where("farmId", "==", farmId)
+  );
+  const snap = await getDocs(q);
+  if (snap.empty) return null;
+  return { id: snap.docs[0].id, ...snap.docs[0].data() } as WeatherAnalyticsRecord;
+}
+
+// ──────────────────────────────────────────
+// RISK ALERTS
+// ──────────────────────────────────────────
+
+export async function saveRiskAssessment(data: {
+  farmId: string;
+  userId: string;
+  overallRisk: number;
+  severity: string;
+  droughtRisk: number;
+  vegetationDeclineRisk: number;
+  heatStressRisk: number;
+  irrigationStressRisk: number;
+  alerts: RiskAlert[];
+  confidence: string;
+}): Promise<void> {
+  const col = collection(db(), COLLECTIONS.RISK_ALERTS);
+  const q = query(col, where("farmId", "==", data.farmId));
+  const snap = await getDocs(q);
+  if (!snap.empty) {
+    await updateDoc(snap.docs[0].ref, { ...data, computedAt: serverTimestamp() });
+  } else {
+    await addDoc(col, { ...data, computedAt: serverTimestamp() });
+  }
+}
+
+export async function getLatestRiskAssessment(
+  farmId: string
+): Promise<RiskAssessmentRecord | null> {
+  const q = query(
+    collection(db(), COLLECTIONS.RISK_ALERTS),
+    where("farmId", "==", farmId)
+  );
+  const snap = await getDocs(q);
+  if (snap.empty) return null;
+  return { id: snap.docs[0].id, ...snap.docs[0].data() } as RiskAssessmentRecord;
+}
+
+export async function getHighRiskFarms(
+  userId: string
+): Promise<RiskAssessmentRecord[]> {
+  const q = query(
+    collection(db(), COLLECTIONS.RISK_ALERTS),
+    where("userId", "==", userId),
+    where("severity", "in", ["high", "critical"]),
+    orderBy("computedAt", "desc"),
+    limit(10)
+  );
+  const snap = await getDocs(q);
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() }) as RiskAssessmentRecord);
+}
+
+// ──────────────────────────────────────────
+// FARM TIMELINE
+// ──────────────────────────────────────────
+
+export async function addFarmTimelineEvent(
+  event: Omit<FarmTimelineEvent, "id" | "timestamp">
+): Promise<void> {
+  await addDoc(collection(db(), COLLECTIONS.FARM_TIMELINES), {
+    ...event,
+    timestamp: serverTimestamp(),
+  });
+}
+
+export async function getFarmTimeline(
+  farmId: string,
+  count = 15
+): Promise<FarmTimelineEvent[]> {
+  const q = query(
+    collection(db(), COLLECTIONS.FARM_TIMELINES),
+    where("farmId", "==", farmId),
+    orderBy("timestamp", "desc"),
+    limit(count)
+  );
+  const snap = await getDocs(q);
+  return snap.docs.map(
+    (d) => ({ id: d.id, ...d.data() }) as FarmTimelineEvent
+  );
+}
+
+// ──────────────────────────────────────────
+// FARM MONITORING CONFIG
+// ──────────────────────────────────────────
+
+export async function updateFarmMonitoringConfig(
+  farmId: string,
+  config: MonitoringConfig
+): Promise<void> {
+  await updateDoc(doc(db(), COLLECTIONS.FARMS, farmId), {
+    monitoring: config,
+    updatedAt: serverTimestamp(),
+  });
+}
+
+export async function getFarmsForMonitoring(userId: string): Promise<Farm[]> {
+  const farms = await getUserFarms(userId);
+  return farms.filter((f) => {
+    const m = (f as Farm & { monitoring?: MonitoringConfig }).monitoring;
+    if (!m?.autoEnabled) return false;
+    if (!m.nextScanAt) return true;
+    return Date.now() >= new Date(m.nextScanAt).getTime();
+  });
 }
