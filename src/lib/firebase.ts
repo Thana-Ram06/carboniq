@@ -68,4 +68,10 @@ export const COLLECTIONS = {
   WEATHER_ANALYTICS: "weather_analytics",
   RISK_ALERTS: "risk_alerts",
   FARM_TIMELINES: "farm_timelines",
+  // Phase 5 — MRV & Verification
+  FARM_EVIDENCE: "farm_evidence",
+  AUDIT_REVIEWS: "audit_reviews",
+  ORGANIZATIONS: "organizations",
+  MONITORING_REPORTS: "monitoring_reports",
+  VERIFICATION_LOGS: "verification_logs",
 } as const;

@@ -424,6 +424,142 @@ export interface FarmTimelineEvent {
 }
 
 // ──────────────────────────────────────────
+// VERIFICATION TYPES (Phase 5)
+// ──────────────────────────────────────────
+
+export type EvidenceType = "photo" | "field_note" | "measurement" | "document" | "gps_track";
+export type EvidenceStatus = "pending" | "validated" | "rejected" | "flagged";
+export type GpsValidationStatus = "valid" | "outside_boundary" | "invalid_coordinates" | "no_boundary";
+
+export interface GpsCoordinate {
+  lat: number;
+  lng: number;
+  accuracy?: number;
+}
+
+export interface FarmEvidence {
+  id: string;
+  farmId: string;
+  userId: string;
+  type: EvidenceType;
+  status: EvidenceStatus;
+  title: string;
+  description?: string;
+  fileUrl?: string;
+  fileType?: string;
+  fileSizeBytes?: number;
+  thumbnailUrl?: string;
+  gpsCoordinate?: GpsCoordinate;
+  gpsValidation: GpsValidationStatus;
+  distanceFromBoundary?: number;
+  fieldNotes?: string;
+  tags?: string[];
+  capturedAt: string;
+  uploadedAt: Timestamp;
+  reviewedBy?: string;
+  reviewedAt?: string;
+}
+
+export type AuditStatus = "pending" | "in_review" | "approved" | "rejected" | "requires_recheck";
+
+export interface AuditReview {
+  id: string;
+  farmId: string;
+  userId: string;
+  auditorId: string;
+  auditorName?: string;
+  status: AuditStatus;
+  periodStart: string;
+  periodEnd: string;
+  carbonScoreTonnes?: number;
+  ndviAverage?: number;
+  evidenceCount: number;
+  validatedEvidenceCount: number;
+  comments: string;
+  checklistItems: AuditChecklistItem[];
+  confidence: number;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+}
+
+export interface AuditChecklistItem {
+  id: string;
+  label: string;
+  passed: boolean;
+  notes?: string;
+}
+
+export type OrgRole = "owner" | "admin" | "auditor" | "viewer";
+
+export interface OrgMember {
+  userId: string;
+  email: string;
+  name?: string;
+  role: OrgRole;
+  joinedAt: Timestamp;
+}
+
+export interface Organization {
+  id: string;
+  name: string;
+  slug: string;
+  ownerId: string;
+  members: OrgMember[];
+  farmIds: string[];
+  plan: "starter" | "professional" | "enterprise";
+  createdAt: Timestamp;
+}
+
+export type ReportFormat = "mrv" | "carbon_summary" | "audit_export" | "executive";
+
+export interface MonitoringReport {
+  id: string;
+  farmId: string;
+  userId: string;
+  orgId?: string;
+  format: ReportFormat;
+  status: ReportStatus;
+  title: string;
+  periodStart: string;
+  periodEnd: string;
+  ndviAverage?: number;
+  carbonScoreTonnes?: number;
+  confidenceScore?: number;
+  auditStatus?: AuditStatus;
+  evidenceCount?: number;
+  summary: string;
+  generatedAt: Timestamp;
+  expiresAt?: Timestamp;
+}
+
+export interface VerificationLog {
+  id: string;
+  farmId: string;
+  userId: string;
+  action: "upload" | "validate" | "audit_submit" | "audit_approve" | "audit_reject" | "report_generate" | "scan";
+  actorId: string;
+  actorName?: string;
+  details: string;
+  metadata?: Record<string, string | number | boolean>;
+  timestamp: Timestamp;
+}
+
+export interface ConfidenceScore {
+  overall: number;
+  label: "Insufficient" | "Low" | "Medium" | "High" | "Verified";
+  ndviScore: number;
+  evidenceScore: number;
+  auditScore: number;
+  consistencyScore: number;
+  breakdown: {
+    scansCompleted: number;
+    evidenceValidated: number;
+    auditApproved: boolean;
+    riskPenalty: number;
+  };
+}
+
+// ──────────────────────────────────────────
 // UI TYPES
 // ──────────────────────────────────────────
 

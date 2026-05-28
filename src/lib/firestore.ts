@@ -36,6 +36,12 @@ import type {
   RiskAssessmentRecord,
   FarmTimelineEvent,
   RiskAlert,
+  FarmEvidence,
+  AuditReview,
+  Organization,
+  MonitoringReport,
+  ReportFormat,
+  VerificationLog,
 } from "@/types";
 import { quickCarbonEstimate } from "./carbon-estimation";
 
@@ -741,4 +747,223 @@ export async function getFarmsForMonitoring(userId: string): Promise<Farm[]> {
     if (!m.nextScanAt) return true;
     return Date.now() >= new Date(m.nextScanAt).getTime();
   });
+}
+
+// ──────────────────────────────────────────
+// FARM EVIDENCE (Phase 5)
+// ──────────────────────────────────────────
+
+export async function saveFarmEvidence(
+  data: Omit<FarmEvidence, "id" | "uploadedAt">
+): Promise<string> {
+  const ref = await addDoc(collection(db(), COLLECTIONS.FARM_EVIDENCE), {
+    ...data,
+    uploadedAt: serverTimestamp(),
+  });
+  return ref.id;
+}
+
+export async function getFarmEvidence(
+  farmId: string,
+  count = 20
+): Promise<FarmEvidence[]> {
+  const q = query(
+    collection(db(), COLLECTIONS.FARM_EVIDENCE),
+    where("farmId", "==", farmId),
+    orderBy("uploadedAt", "desc"),
+    limit(count)
+  );
+  const snap = await getDocs(q);
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() }) as FarmEvidence);
+}
+
+export async function getUserEvidence(
+  userId: string,
+  count = 50
+): Promise<FarmEvidence[]> {
+  const q = query(
+    collection(db(), COLLECTIONS.FARM_EVIDENCE),
+    where("userId", "==", userId),
+    orderBy("uploadedAt", "desc"),
+    limit(count)
+  );
+  const snap = await getDocs(q);
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() }) as FarmEvidence);
+}
+
+export async function updateEvidenceStatus(
+  evidenceId: string,
+  status: FarmEvidence["status"],
+  reviewedBy?: string
+): Promise<void> {
+  await updateDoc(doc(db(), COLLECTIONS.FARM_EVIDENCE, evidenceId), {
+    status,
+    reviewedBy,
+    reviewedAt: new Date().toISOString(),
+  });
+}
+
+// ──────────────────────────────────────────
+// AUDIT REVIEWS (Phase 5)
+// ──────────────────────────────────────────
+
+export async function createAuditReview(
+  data: Omit<AuditReview, "id" | "createdAt" | "updatedAt">
+): Promise<string> {
+  const ref = await addDoc(collection(db(), COLLECTIONS.AUDIT_REVIEWS), {
+    ...data,
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+  });
+  return ref.id;
+}
+
+export async function updateAuditReview(
+  reviewId: string,
+  update: Partial<Pick<AuditReview, "status" | "comments" | "checklistItems" | "confidence">>
+): Promise<void> {
+  await updateDoc(doc(db(), COLLECTIONS.AUDIT_REVIEWS, reviewId), {
+    ...update,
+    updatedAt: serverTimestamp(),
+  });
+}
+
+export async function getFarmAuditHistory(
+  farmId: string,
+  count = 10
+): Promise<AuditReview[]> {
+  const q = query(
+    collection(db(), COLLECTIONS.AUDIT_REVIEWS),
+    where("farmId", "==", farmId),
+    orderBy("createdAt", "desc"),
+    limit(count)
+  );
+  const snap = await getDocs(q);
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() }) as AuditReview);
+}
+
+export async function getPendingAudits(
+  userId: string
+): Promise<AuditReview[]> {
+  const q = query(
+    collection(db(), COLLECTIONS.AUDIT_REVIEWS),
+    where("userId", "==", userId),
+    where("status", "in", ["pending", "in_review", "requires_recheck"]),
+    orderBy("createdAt", "desc"),
+    limit(20)
+  );
+  const snap = await getDocs(q);
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() }) as AuditReview);
+}
+
+export async function getLatestAuditForFarm(
+  farmId: string
+): Promise<AuditReview | null> {
+  const q = query(
+    collection(db(), COLLECTIONS.AUDIT_REVIEWS),
+    where("farmId", "==", farmId),
+    orderBy("createdAt", "desc"),
+    limit(1)
+  );
+  const snap = await getDocs(q);
+  if (snap.empty) return null;
+  const d = snap.docs[0];
+  return { id: d.id, ...d.data() } as AuditReview;
+}
+
+// ──────────────────────────────────────────
+// ORGANIZATIONS (Phase 5)
+// ──────────────────────────────────────────
+
+export async function createOrganization(
+  data: Omit<Organization, "id" | "createdAt">
+): Promise<string> {
+  const ref = await addDoc(collection(db(), COLLECTIONS.ORGANIZATIONS), {
+    ...data,
+    createdAt: serverTimestamp(),
+  });
+  return ref.id;
+}
+
+export async function getOrganization(orgId: string): Promise<Organization | null> {
+  const snap = await getDoc(doc(db(), COLLECTIONS.ORGANIZATIONS, orgId));
+  if (!snap.exists()) return null;
+  return { id: snap.id, ...snap.data() } as Organization;
+}
+
+export async function getUserOrganizations(userId: string): Promise<Organization[]> {
+  const q = query(
+    collection(db(), COLLECTIONS.ORGANIZATIONS),
+    where("ownerId", "==", userId)
+  );
+  const snap = await getDocs(q);
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() }) as Organization);
+}
+
+// ──────────────────────────────────────────
+// MONITORING REPORTS (Phase 5)
+// ──────────────────────────────────────────
+
+export async function saveMonitoringReport(
+  data: Omit<MonitoringReport, "id" | "generatedAt">
+): Promise<string> {
+  const ref = await addDoc(collection(db(), COLLECTIONS.MONITORING_REPORTS), {
+    ...data,
+    generatedAt: serverTimestamp(),
+  });
+  return ref.id;
+}
+
+export async function getMonitoringReports(
+  userId: string,
+  count = 20
+): Promise<MonitoringReport[]> {
+  const q = query(
+    collection(db(), COLLECTIONS.MONITORING_REPORTS),
+    where("userId", "==", userId),
+    orderBy("generatedAt", "desc"),
+    limit(count)
+  );
+  const snap = await getDocs(q);
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() }) as MonitoringReport);
+}
+
+export async function getReportById(reportId: string): Promise<MonitoringReport | null> {
+  const snap = await getDoc(doc(db(), COLLECTIONS.MONITORING_REPORTS, reportId));
+  if (!snap.exists()) return null;
+  return { id: snap.id, ...snap.data() } as MonitoringReport;
+}
+
+export async function updateReportStatus(
+  reportId: string,
+  status: ReportFormat extends string ? "generating" | "ready" | "error" : never,
+): Promise<void> {
+  await updateDoc(doc(db(), COLLECTIONS.MONITORING_REPORTS, reportId), { status });
+}
+
+// ──────────────────────────────────────────
+// VERIFICATION LOGS (Phase 5)
+// ──────────────────────────────────────────
+
+export async function addVerificationLog(
+  data: Omit<VerificationLog, "id" | "timestamp">
+): Promise<void> {
+  await addDoc(collection(db(), COLLECTIONS.VERIFICATION_LOGS), {
+    ...data,
+    timestamp: serverTimestamp(),
+  });
+}
+
+export async function getVerificationLogs(
+  farmId: string,
+  count = 30
+): Promise<VerificationLog[]> {
+  const q = query(
+    collection(db(), COLLECTIONS.VERIFICATION_LOGS),
+    where("farmId", "==", farmId),
+    orderBy("timestamp", "desc"),
+    limit(count)
+  );
+  const snap = await getDocs(q);
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() }) as VerificationLog);
 }

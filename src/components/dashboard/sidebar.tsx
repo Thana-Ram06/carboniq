@@ -16,6 +16,8 @@ import {
   LogOut,
   HelpCircle,
   X,
+  Camera,
+  ShieldCheck,
 } from "lucide-react";
 import { VasudhaLogo, VasudhaIcon } from "@/components/ui/vasudha-logo";
 import { cn } from "@/lib/utils";
@@ -26,6 +28,8 @@ const NAV_ITEMS = [
   { label: "Farms", href: "/farms", icon: Map },
   { label: "Satellite", href: "/satellite", icon: Satellite },
   { label: "Carbon", href: "/carbon", icon: BarChart3 },
+  { label: "Evidence", href: "/evidence", icon: Camera },
+  { label: "Audit", href: "/audit", icon: ShieldCheck },
   { label: "Reports", href: "/reports", icon: FileText },
 ];
 

@@ -1,269 +1,327 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import {
-  FileText,
-  Download,
-  Plus,
-  Filter,
-  BarChart3,
-  Satellite,
-  Leaf,
-  Map,
-  Clock,
-  CheckCircle2,
-  AlertCircle,
-  Loader2,
-  Eye,
+  FileText, Plus, RefreshCw, ShieldCheck, Leaf,
+  BarChart3, TrendingUp, Zap,
 } from "lucide-react";
-import { motion } from "framer-motion";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { formatTimestamp } from "@/lib/utils";
-import type { ReportType } from "@/types";
+import { MRVReportCard } from "@/components/reports/MRVReportCard";
+import { PDFExporter } from "@/components/reports/PDFExporter";
+import { ConfidenceScoreWidget } from "@/components/verification/ConfidenceScore";
+import { useAuth } from "@/hooks/use-auth";
+import { useFarms } from "@/hooks/use-farms";
+import { getMonitoringReports } from "@/lib/firestore";
+import { computeFarmNDVI } from "@/lib/satellite/ndvi-engine";
+import { computeHealthScore } from "@/lib/intelligence/health-scoring";
+import { computeCarbonIntelligence } from "@/lib/intelligence/carbon-intelligence";
+import { assessRisk } from "@/lib/monitoring/risk-engine";
+import type { MonitoringReport, ReportFormat } from "@/types";
+import type { MRVReportData } from "@/lib/reporting/mrv-report";
 import toast from "react-hot-toast";
 
-const MOCK_REPORTS = [
-  {
-    id: "r1",
-    title: "Q4 2024 Carbon Sustainability Summary",
-    type: "carbon" as ReportType,
-    status: "ready",
-    period: "Oct 2024 – Dec 2024",
-    farms: 8,
-    co2e: 142.4,
-    createdAt: { seconds: Date.now() / 1000 - 86400 },
-  },
-  {
-    id: "r2",
-    title: "Kharif Season NDVI Report",
-    type: "satellite" as ReportType,
-    status: "ready",
-    period: "Jun 2024 – Oct 2024",
-    farms: 12,
-    co2e: 0,
-    createdAt: { seconds: Date.now() / 1000 - 172800 },
-  },
-  {
-    id: "r3",
-    title: "Farm Portfolio Overview — Maharashtra",
-    type: "farm" as ReportType,
-    status: "ready",
-    period: "Jan 2024 – Dec 2024",
-    farms: 6,
-    co2e: 84.2,
-    createdAt: { seconds: Date.now() / 1000 - 604800 },
-  },
-  {
-    id: "r4",
-    title: "Annual Sustainability Report 2024",
-    type: "sustainability" as ReportType,
-    status: "generating",
-    period: "Full Year 2024",
-    farms: 15,
-    co2e: 0,
-    createdAt: { seconds: Date.now() / 1000 - 3600 },
-  },
+const FORMAT_OPTIONS: { value: ReportFormat; label: string; icon: React.ElementType; desc: string }[] = [
+  { value: "mrv", label: "MRV Report", icon: ShieldCheck, desc: "Full MRV verification report with audit trail" },
+  { value: "carbon_summary", label: "Carbon Summary", icon: Leaf, desc: "Carbon score, biomass, and credit estimation" },
+  { value: "audit_export", label: "Audit Export", icon: BarChart3, desc: "Audit history and checklist export" },
+  { value: "executive", label: "Executive", icon: TrendingUp, desc: "High-level summary for stakeholders" },
 ];
 
-const TYPE_CONFIG: Record<ReportType, { icon: typeof FileText; color: string; bg: string; label: string }> = {
-  carbon: { icon: BarChart3, color: "text-green-400", bg: "bg-green-500/8", label: "Carbon" },
-  satellite: { icon: Satellite, color: "text-blue-400", bg: "bg-blue-500/8", label: "Satellite" },
-  farm: { icon: Map, color: "text-emerald-400", bg: "bg-emerald-500/8", label: "Farm" },
-  sustainability: { icon: Leaf, color: "text-teal-400", bg: "bg-teal-500/8", label: "Sustainability" },
-};
-
-function ReportCard({
-  report,
-}: {
-  report: (typeof MOCK_REPORTS)[0];
-}) {
-  const config = TYPE_CONFIG[report.type];
-  const Icon = config.icon;
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-    >
-      <Card hover className="group">
-        <CardContent className="p-5">
-          <div className="flex items-start gap-4">
-            <div className={`w-10 h-10 rounded-xl ${config.bg} flex items-center justify-center flex-shrink-0`}>
-              <Icon className={`w-5 h-5 ${config.color}`} />
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-start justify-between gap-2">
-                <h3 className="text-sm font-semibold text-foreground leading-snug">
-                  {report.title}
-                </h3>
-                {report.status === "ready" ? (
-                  <Badge variant="green" size="sm" dot className="flex-shrink-0">
-                    Ready
-                  </Badge>
-                ) : report.status === "generating" ? (
-                  <Badge variant="yellow" size="sm" className="flex-shrink-0">
-                    <Loader2 className="w-3 h-3 animate-spin" />
-                    Generating
-                  </Badge>
-                ) : (
-                  <Badge variant="red" size="sm" className="flex-shrink-0">
-                    Error
-                  </Badge>
-                )}
-              </div>
-
-              <div className="flex flex-wrap gap-3 mt-2">
-                <span className="text-xs text-muted-foreground/60 flex items-center gap-1">
-                  <Clock className="w-3 h-3" />
-                  {report.period}
-                </span>
-                <span className="text-xs text-muted-foreground/60 flex items-center gap-1">
-                  <Map className="w-3 h-3" />
-                  {report.farms} farms
-                </span>
-                {report.co2e > 0 && (
-                  <span className="text-xs text-green-500/70 flex items-center gap-1">
-                    <Leaf className="w-3 h-3" />
-                    {report.co2e} tCO₂e
-                  </span>
-                )}
-              </div>
-
-              <p className="text-xs text-muted-foreground/50 mt-1">
-                Generated {formatTimestamp(report.createdAt as { seconds: number })}
-              </p>
-
-              <div className="flex gap-2 mt-3">
-                <button className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors">
-                  <Eye className="w-3.5 h-3.5" />
-                  View
-                </button>
-                <button
-                  className="flex items-center gap-1.5 text-xs text-green-500/70 hover:text-green-400 transition-colors"
-                  onClick={() => toast.success("Download started (PDF export coming soon)")}
-                >
-                  <Download className="w-3.5 h-3.5" />
-                  Download PDF
-                </button>
-                <button
-                  className="flex items-center gap-1.5 text-xs text-green-500/70 hover:text-green-400 transition-colors"
-                  onClick={() => toast.success("CSV export coming soon")}
-                >
-                  <Download className="w-3.5 h-3.5" />
-                  CSV
-                </button>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    </motion.div>
-  );
-}
-
 export default function ReportsPage() {
-  const [filter, setFilter] = useState<ReportType | "all">("all");
+  const { user } = useAuth();
+  const { farms, loading: farmsLoading } = useFarms(user?.uid ?? null);
+  const [reports, setReports] = useState<MonitoringReport[]>([]);
+  const [loadingReports, setLoadingReports] = useState(true);
+  const [selectedFarmId, setSelectedFarmId] = useState<string | null>(null);
+  const [selectedFormat, setSelectedFormat] = useState<ReportFormat>("mrv");
   const [generating, setGenerating] = useState(false);
+  const [activeReport, setActiveReport] = useState<MRVReportData | null>(null);
 
-  const filtered =
-    filter === "all"
-      ? MOCK_REPORTS
-      : MOCK_REPORTS.filter((r) => r.type === filter);
+  const selectedFarm = farms.find((f) => f.id === selectedFarmId) ?? farms[0];
 
-  const handleGenerate = async () => {
+  useEffect(() => {
+    if (farms.length > 0 && !selectedFarmId) setSelectedFarmId(farms[0].id);
+  }, [farms, selectedFarmId]);
+
+  const loadReports = useCallback(async () => {
+    if (!user?.uid) return;
+    setLoadingReports(true);
+    try {
+      const r = await getMonitoringReports(user.uid, 20);
+      setReports(r);
+    } finally {
+      setLoadingReports(false);
+    }
+  }, [user?.uid]);
+
+  useEffect(() => { loadReports(); }, [loadReports]);
+
+  const generateReport = useCallback(async () => {
+    if (!selectedFarm || !user?.uid) { toast.error("Select a farm first"); return; }
     setGenerating(true);
-    await new Promise((r) => setTimeout(r, 1500));
-    setGenerating(false);
-    toast.success("New report queued for generation");
+    try {
+      const res = await fetch("/api/reports/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ farmId: selectedFarm.id, userId: user.uid, format: selectedFormat, periodDays: 30 }),
+      });
+      const data = await res.json() as { reportId: string; reportData: MRVReportData };
+      if (!res.ok) throw new Error("Generation failed");
+
+      setActiveReport(data.reportData);
+      await loadReports();
+      toast.success("MRV report generated successfully");
+    } catch {
+      toast.error("Report generation failed");
+    } finally {
+      setGenerating(false);
+    }
+  }, [selectedFarm, user?.uid, selectedFormat, loadReports]);
+
+  // Compute live preview for selected farm
+  const livePreview = useMemo(() => {
+    if (!selectedFarm) return null;
+    const ndviResult = computeFarmNDVI({
+      farmId: selectedFarm.id, cropType: selectedFarm.cropType,
+      irrigationType: selectedFarm.irrigationType, state: selectedFarm.state,
+      areaHectares: selectedFarm.areaHectares,
+    });
+    const ndvi = ndviResult.current.ndvi;
+    return {
+      ndvi,
+      health: computeHealthScore(ndvi),
+      carbon: computeCarbonIntelligence(selectedFarm, ndvi),
+      risk: assessRisk(selectedFarm, ndvi, null),
+    };
+  }, [selectedFarm]);
+
+  const reportStats = {
+    total: reports.length,
+    ready: reports.filter((r) => r.status === "ready").length,
+    avgConfidence: reports.length > 0
+      ? Math.round(reports.reduce((s, r) => s + (r.confidenceScore ?? 0), 0) / reports.length)
+      : 0,
   };
 
+  if (farmsLoading) {
+    return (
+      <div className="max-w-5xl mx-auto space-y-4 animate-pulse">
+        <div className="h-10 bg-card rounded-xl w-64" />
+        <div className="grid grid-cols-3 gap-4">
+          {Array.from({ length: 3 }).map((_, i) => <div key={i} className="h-24 bg-card rounded-2xl" />)}
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="max-w-5xl mx-auto">
+    <div className="max-w-5xl mx-auto space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold text-foreground">Reports</h1>
+          <h1 className="text-2xl font-semibold text-foreground">MRV Reports</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Generate and manage sustainability reports
+            Verification-ready reports for carbon credit certification and stakeholder reporting
           </p>
         </div>
-        <Button variant="primary" onClick={handleGenerate} loading={generating}>
-          <Plus className="w-4 h-4" />
-          Generate Report
-        </Button>
-      </div>
-
-      {/* Summary cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-        {[
-          { icon: CheckCircle2, label: "Reports Ready", value: MOCK_REPORTS.filter(r => r.status === "ready").length, color: "text-green-400", bg: "bg-green-500/8" },
-          { icon: Loader2, label: "Generating", value: MOCK_REPORTS.filter(r => r.status === "generating").length, color: "text-yellow-400", bg: "bg-yellow-500/8" },
-          { icon: Leaf, label: "Total CO₂e Saved", value: "226 t", color: "text-emerald-400", bg: "bg-emerald-500/8" },
-          { icon: AlertCircle, label: "Farms Covered", value: 15, color: "text-blue-400", bg: "bg-blue-500/8" },
-        ].map((stat) => {
-          const Icon = stat.icon;
-          return (
-            <div key={stat.label} className="p-4 rounded-2xl border border-border bg-card">
-              <div className={`w-8 h-8 rounded-xl ${stat.bg} flex items-center justify-center mb-3`}>
-                <Icon className={`w-4 h-4 ${stat.color}`} />
-              </div>
-              <p className="text-xl font-bold text-foreground">{stat.value}</p>
-              <p className="text-xs text-muted-foreground/60 mt-0.5">{stat.label}</p>
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Filter tabs */}
-      <div className="flex items-center gap-2 mb-6 flex-wrap">
-        <Filter className="w-4 h-4 text-muted-foreground/60" />
-        {(["all", "carbon", "satellite", "farm", "sustainability"] as const).map(
-          (f) => (
-            <button
-              key={f}
-              onClick={() => setFilter(f)}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-medium transition-all capitalize ${
-                filter === f
-                  ? "bg-green-500/12 border border-green-500/25 text-green-300"
-                  : "text-muted-foreground/60 border border-transparent hover:border-border hover:text-foreground"
-              }`}
-            >
-              {f === "all" ? "All Reports" : f}
-            </button>
-          )
-        )}
-      </div>
-
-      {/* Report list */}
-      <div className="flex flex-col gap-3">
-        {filtered.map((report) => (
-          <ReportCard key={report.id} report={report} />
-        ))}
-      </div>
-
-      {/* Empty state */}
-      {filtered.length === 0 && (
-        <div className="text-center py-16">
-          <FileText className="w-8 h-8 text-muted-foreground/50 mx-auto mb-3" />
-          <p className="text-muted-foreground/60">No reports found for this filter</p>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={loadReports} disabled={loadingReports}>
+            <RefreshCw className={`w-3.5 h-3.5 ${loadingReports ? "animate-spin" : ""}`} />
+          </Button>
+          <Button variant="primary" size="sm" onClick={generateReport} disabled={generating || !selectedFarm}>
+            {generating ? <><RefreshCw className="w-3.5 h-3.5 animate-spin" /> Generating…</> : <><Plus className="w-3.5 h-3.5" /> Generate Report</>}
+          </Button>
         </div>
-      )}
+      </div>
 
-      {/* Note about exports */}
-      <div className="mt-8 p-4 rounded-2xl border border-border bg-card flex gap-3">
-        <AlertCircle className="w-4 h-4 text-muted-foreground/50 flex-shrink-0 mt-0.5" />
-        <p className="text-xs text-muted-foreground/60 leading-relaxed">
-          <span className="text-foreground/80 font-medium">PDF & CSV export</span>{" "}
-          and{" "}
-          <span className="text-foreground/80 font-medium">
-            automated report generation
-          </span>{" "}
-          are in active development. Reports shown are demonstration data.
-          Integration with real farm data and carbon estimations is planned for
-          the next release.
-        </p>
+      {/* Stats */}
+      <div className="grid grid-cols-3 gap-3">
+        <div className="p-4 rounded-2xl border border-border bg-card">
+          <p className="text-2xl font-bold text-foreground">{reportStats.total}</p>
+          <p className="text-xs text-muted-foreground/50 mt-0.5">Total Reports</p>
+        </div>
+        <div className="p-4 rounded-2xl border border-border bg-card">
+          <p className="text-2xl font-bold text-green-400">{reportStats.ready}</p>
+          <p className="text-xs text-muted-foreground/50 mt-0.5">Ready for Download</p>
+        </div>
+        <div className="p-4 rounded-2xl border border-border bg-card">
+          <p className={`text-2xl font-bold ${reportStats.avgConfidence >= 70 ? "text-green-400" : reportStats.avgConfidence >= 40 ? "text-yellow-400" : "text-muted-foreground"}`}>
+            {reportStats.avgConfidence > 0 ? `${reportStats.avgConfidence}/100` : "—"}
+          </p>
+          <p className="text-xs text-muted-foreground/50 mt-0.5">Avg Confidence</p>
+        </div>
+      </div>
+
+      <div className="grid lg:grid-cols-3 gap-6">
+        {/* Configuration panel */}
+        <div className="space-y-4">
+          {/* Farm selector */}
+          <Card>
+            <CardHeader><CardTitle>Farm</CardTitle></CardHeader>
+            <CardContent>
+              <div className="space-y-1.5">
+                {farms.map((farm) => (
+                  <button
+                    key={farm.id}
+                    onClick={() => setSelectedFarmId(farm.id)}
+                    className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl border text-left transition-all ${
+                      selectedFarmId === farm.id
+                        ? "border-green-500/30 bg-green-500/8"
+                        : "border-border bg-muted hover:border-green-500/20"
+                    }`}
+                  >
+                    <div className={`w-2 h-2 rounded-full shrink-0 ${selectedFarmId === farm.id ? "bg-green-400" : "bg-muted-foreground/30"}`} />
+                    <span className="text-sm text-foreground flex-1 truncate">{farm.name}</span>
+                    <span className="text-[10px] text-muted-foreground/40">{farm.areaHectares.toFixed(1)}ha</span>
+                  </button>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Format selector */}
+          <Card>
+            <CardHeader><CardTitle>Report Format</CardTitle></CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                {FORMAT_OPTIONS.map(({ value, label, icon: Icon, desc }) => (
+                  <button
+                    key={value}
+                    onClick={() => setSelectedFormat(value)}
+                    className={`w-full flex items-start gap-3 px-3 py-2.5 rounded-xl border text-left transition-all ${
+                      selectedFormat === value
+                        ? "border-green-500/30 bg-green-500/8"
+                        : "border-border bg-muted hover:border-green-500/20"
+                    }`}
+                  >
+                    <Icon className={`w-4 h-4 mt-0.5 shrink-0 ${selectedFormat === value ? "text-green-400" : "text-muted-foreground/50"}`} />
+                    <div>
+                      <p className={`text-xs font-medium ${selectedFormat === value ? "text-green-300" : "text-foreground"}`}>{label}</p>
+                      <p className="text-[10px] text-muted-foreground/50 leading-relaxed">{desc}</p>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Live preview metrics */}
+          {livePreview && (
+            <Card>
+              <CardHeader><CardTitle>Live Preview</CardTitle></CardHeader>
+              <CardContent className="space-y-3">
+                <div className="grid grid-cols-2 gap-2">
+                  {[
+                    { label: "NDVI", value: livePreview.ndvi.toFixed(3), color: "text-green-400" },
+                    { label: "Health", value: livePreview.health.label, color: "text-emerald-400" },
+                    { label: "CO₂e", value: `${livePreview.carbon.carbonScoreTonnes.toFixed(1)}t`, color: "text-foreground" },
+                    { label: "Risk", value: livePreview.risk.severity, color: livePreview.risk.severity === "low" ? "text-green-400" : "text-orange-400" },
+                  ].map((m) => (
+                    <div key={m.label} className="p-2.5 rounded-xl bg-muted border border-border">
+                      <p className="text-[10px] text-muted-foreground/50">{m.label}</p>
+                      <p className={`text-sm font-bold ${m.color} capitalize`}>{m.value}</p>
+                    </div>
+                  ))}
+                </div>
+                <Button variant="primary" size="sm" className="w-full" onClick={generateReport} disabled={generating}>
+                  <Zap className="w-3.5 h-3.5" />
+                  {generating ? "Generating…" : "Generate & Download"}
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+
+        {/* Reports list + active report */}
+        <div className="lg:col-span-2 space-y-4">
+          {/* Active report viewer */}
+          {activeReport && (
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center gap-2">
+                    <ShieldCheck className="w-4 h-4 text-green-400" />
+                    Generated Report — {activeReport.farm.name}
+                  </CardTitle>
+                  <PDFExporter reportData={activeReport} />
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <ConfidenceScoreWidget score={activeReport.confidence} />
+                <div className="grid grid-cols-3 gap-2">
+                  <div className="p-2.5 rounded-xl bg-muted border border-border text-center">
+                    <p className="text-sm font-bold text-green-400 font-mono">{activeReport.ndvi.toFixed(3)}</p>
+                    <p className="text-[10px] text-muted-foreground/50">NDVI</p>
+                  </div>
+                  <div className="p-2.5 rounded-xl bg-muted border border-border text-center">
+                    <p className="text-sm font-bold text-emerald-400 font-mono">{activeReport.carbon.carbonScoreTonnes.toFixed(1)}t</p>
+                    <p className="text-[10px] text-muted-foreground/50">CO₂e</p>
+                  </div>
+                  <div className="p-2.5 rounded-xl bg-muted border border-border text-center">
+                    <p className="text-sm font-bold text-foreground">${activeReport.carbon.carbonCreditEstimate.toLocaleString()}</p>
+                    <p className="text-[10px] text-muted-foreground/50">Credits</p>
+                  </div>
+                </div>
+                <div className="p-3 rounded-xl bg-green-500/5 border border-green-500/15">
+                  <p className="text-xs text-green-300/80 leading-relaxed">{activeReport.certificationNote}</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-[10px] text-muted-foreground/50 font-medium">Methodology</p>
+                  {activeReport.methodology.slice(0, 3).map((m, i) => (
+                    <p key={i} className="text-[10px] text-muted-foreground/40 leading-relaxed">• {m}</p>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Report history */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2">
+                  <FileText className="w-4 h-4 text-muted-foreground/60" />
+                  Report History
+                </CardTitle>
+                <Badge variant="gray" size="sm">{reports.length} reports</Badge>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {loadingReports ? (
+                <div className="space-y-3">
+                  {Array.from({ length: 3 }).map((_, i) => (
+                    <div key={i} className="h-24 rounded-2xl bg-muted border border-border animate-pulse" />
+                  ))}
+                </div>
+              ) : reports.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-16 text-center">
+                  <div className="w-14 h-14 rounded-3xl bg-muted border border-border flex items-center justify-center mb-4">
+                    <FileText className="w-6 h-6 text-muted-foreground/40" />
+                  </div>
+                  <p className="text-sm font-medium text-muted-foreground mb-1">No reports yet</p>
+                  <p className="text-xs text-muted-foreground/50 max-w-xs">
+                    Generate your first MRV report to begin the verification process.
+                  </p>
+                  <Button variant="outline" size="sm" className="mt-4" onClick={generateReport} disabled={generating || !selectedFarm}>
+                    <Plus className="w-3.5 h-3.5" /> Generate First Report
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {reports.map((report) => (
+                    <MRVReportCard
+                      key={report.id}
+                      report={report}
+                      onDownload={() => toast("Re-generate to download PDF")}
+                    />
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );
