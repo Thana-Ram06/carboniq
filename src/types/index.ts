@@ -1688,3 +1688,195 @@ export interface EcosystemHealth {
   verificationCoverageRate: number;
   ecosystemScore: number;
 }
+
+// ─── Phase 13: Scientific Validation & Pilot Operations ───────────────────────
+
+export interface GroundTruthObservation {
+  id: string;
+  farmId: string;
+  farmName: string;
+  district: string;
+  state: string;
+  observedAt: string;
+  observerName: string;
+  ndviFieldMeasured: number;
+  ndviSatelliteEstimate: number;
+  carbonFieldTonnes: number;
+  carbonModelledTonnes: number;
+  soilSampleDepthCm: number;
+  biomassWeightKg: number;
+  cropStage: string;
+  notes: string;
+  photoUrls: string[];
+  validated: boolean;
+}
+
+export type ValidationScoreGrade = "A" | "B" | "C" | "D" | "F";
+
+export interface ValidationScore {
+  farmId: string;
+  ndviMae: number;
+  ndviRmse: number;
+  carbonMae: number;
+  carbonRmse: number;
+  correlationCoefficient: number;
+  biasPercent: number;
+  observationCount: number;
+  grade: ValidationScoreGrade;
+  lastValidated: string;
+}
+
+export interface FieldVerificationMission {
+  id: string;
+  missionName: string;
+  leadAuditor: string;
+  district: string;
+  state: string;
+  targetFarms: number;
+  completedFarms: number;
+  startDate: string;
+  endDate: string;
+  status: "planned" | "active" | "completed" | "cancelled";
+  groundTruthCount: number;
+  anomaliesFound: number;
+}
+
+export interface ModelAccuracyMetric {
+  modelName: string;
+  version: string;
+  datasetSize: number;
+  ndviR2: number;
+  carbonR2: number;
+  droughtAUC: number;
+  anomalyPrecision: number;
+  anomalyRecall: number;
+  evaluatedAt: string;
+  benchmark: "passing" | "marginal" | "failing";
+}
+
+export interface NDVIAccuracyRecord {
+  district: string;
+  state: string;
+  sentinelNDVI: number;
+  fieldNDVI: number;
+  absoluteError: number;
+  percentError: number;
+  sampleCount: number;
+  season: string;
+  year: number;
+}
+
+export interface ForecastAccuracyRecord {
+  horizonDays: number;
+  parameter: "drought_prob" | "ndvi_change" | "yield_index";
+  mae: number;
+  rmse: number;
+  bias: number;
+  skillScore: number;
+  evaluationPeriod: string;
+}
+
+export interface CalibrationCoefficient {
+  id: string;
+  paramName: string;
+  description: string;
+  currentValue: number;
+  defaultValue: number;
+  minBound: number;
+  maxBound: number;
+  lastCalibrated: string;
+  calibratedBy: string;
+  notes: string;
+}
+
+export interface RegionalCalibration {
+  state: string;
+  district: string;
+  ndviBiasCorrection: number;
+  carbonScaleFactor: number;
+  droughtThresholdAdjust: number;
+  sampleCount: number;
+  r2Score: number;
+  calibratedAt: string;
+  approved: boolean;
+}
+
+export interface SeasonalCorrectionFactor {
+  season: "kharif" | "rabi" | "zaid";
+  cropType: string;
+  ndviMultiplier: number;
+  carbonMultiplier: number;
+  validatedYears: number[];
+}
+
+export interface PilotPerformanceMetric {
+  pilotId: string;
+  pilotName: string;
+  state: string;
+  district: string;
+  farmsEnrolled: number;
+  farmsActive: number;
+  ndviCoveragePercent: number;
+  auditCompletionRate: number;
+  reportingOnTimeRate: number;
+  avgDataQualityScore: number;
+  carbonCreditsMinted: number;
+  operationalUptimePct: number;
+  startDate: string;
+  reviewDate: string;
+  status: "healthy" | "at_risk" | "stalled";
+}
+
+export interface ValidationDataset {
+  id: string;
+  name: string;
+  description: string;
+  recordCount: number;
+  states: string[];
+  seasons: string[];
+  cropTypes: string[];
+  ndviObservations: number;
+  carbonObservations: number;
+  createdAt: string;
+  version: string;
+  isPublic: boolean;
+}
+
+export interface BenchmarkReport {
+  id: string;
+  title: string;
+  reportDate: string;
+  coverageStates: number;
+  coverageDistricts: number;
+  totalObservations: number;
+  ndviAccuracyGrade: ValidationScoreGrade;
+  carbonAccuracyGrade: ValidationScoreGrade;
+  overallAccuracyPct: number;
+  improvementFromPrior: number;
+  findings: string[];
+  recommendations: string[];
+}
+
+export interface OperationalHealthMetric {
+  component: string;
+  category: "data_pipeline" | "model_inference" | "field_sync" | "reporting" | "storage";
+  successRatePct: number;
+  avgLatencyMs: number;
+  errorCount24h: number;
+  lastCheckAt: string;
+  status: "healthy" | "degraded" | "down";
+}
+
+export interface ResearchDataset {
+  id: string;
+  title: string;
+  dataType: "ndvi_timeseries" | "carbon_samples" | "soil_profiles" | "biomass_survey" | "drone_imagery";
+  recordCount: number;
+  spatialCoverage: string;
+  temporalRange: string;
+  license: "CC-BY-4.0" | "CC-BY-NC-4.0" | "proprietary";
+  downloadCount: number;
+  citationCount: number;
+  createdAt: string;
+  isPublished: boolean;
+}

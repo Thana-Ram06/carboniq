@@ -11,6 +11,7 @@ import {
   Link2, Globe, Activity, Key, BookOpen,
   Server, Lock, DollarSign, TrendingUp, GitBranch,
   Flag, Network, FileCheck, Clipboard, Globe2, Rocket, Users2,
+  FlaskConical, Settings2, Gauge, Award, Database, HeartPulse,
 } from "lucide-react";
 import { VasudhaLogo, VasudhaIcon } from "@/components/ui/vasudha-logo";
 import { cn } from "@/lib/utils";
@@ -46,6 +47,12 @@ const NAV_ITEMS: Array<{ label: string; href: string; icon: typeof LayoutDashboa
   { label: "Interop",       href: "/interop",       icon: Network },
   { label: "Field Ops",     href: "/field-ops",     icon: Clipboard },
   { label: "Ecosystem",     href: "/ecosystem",     icon: Globe2 },
+  { label: "Validation",    href: "/validation",    icon: FlaskConical },
+  { label: "Calibration",  href: "/calibration",   icon: Settings2 },
+  { label: "Pilot Ops",    href: "/pilot-ops",     icon: Gauge },
+  { label: "Benchmarks",   href: "/benchmarks",    icon: Award },
+  { label: "Research",     href: "/research",      icon: Database },
+  { label: "Ops Health",   href: "/ops-health",    icon: HeartPulse },
   { label: "Pilot",         href: "/pilot",         icon: Building2, roles: ["admin", "org_manager"] },
   { label: "Admin",         href: "/admin",         icon: Shield,    roles: ["admin"] },
 ];
