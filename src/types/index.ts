@@ -1259,3 +1259,208 @@ export interface RegionalCluster {
   avgCarbon: number;
   bounds: [[number, number], [number, number]];
 }
+
+// ============================================================
+// Phase 11 — Production Hardening & Reliability Layer
+// ============================================================
+
+// Observability & Incidents
+export type IncidentSeverity = "critical" | "high" | "medium" | "low";
+export type IncidentStatus = "open" | "investigating" | "mitigated" | "resolved";
+
+export interface Incident {
+  id: string;
+  title: string;
+  severity: IncidentSeverity;
+  status: IncidentStatus;
+  affectedComponents: string[];
+  startedAt: string;
+  resolvedAt?: string;
+  mttrMinutes?: number;
+  description: string;
+}
+
+export interface UptimeRecord {
+  component: string;
+  date: string;
+  uptimePct: number;
+  downMinutes: number;
+  incidentCount: number;
+}
+
+export interface APILatencyBucket {
+  endpoint: string;
+  hour: string;
+  p50Ms: number;
+  p95Ms: number;
+  p99Ms: number;
+  requestCount: number;
+  errorCount: number;
+}
+
+// Security & Audit
+export type AuditEventType =
+  | "login" | "logout" | "login_failed"
+  | "farm_create" | "farm_delete" | "farm_update"
+  | "api_key_create" | "api_key_revoke"
+  | "role_change" | "member_invite" | "member_remove"
+  | "report_export" | "evidence_upload"
+  | "admin_action" | "bulk_delete";
+
+export interface AuditEntry {
+  id: string;
+  userId: string;
+  email: string;
+  eventType: AuditEventType;
+  resourceType: string;
+  resourceId?: string;
+  ipAddress?: string;
+  timestamp: string;
+  severity: "info" | "warning" | "critical";
+  success: boolean;
+  metadata?: Record<string, string | number>;
+}
+
+export interface AbuseEvent {
+  type: "rate_limit_exceeded" | "invalid_key" | "suspicious_pattern" | "geo_block";
+  ipAddress: string;
+  endpoint: string;
+  timestamp: string;
+  count: number;
+  blocked: boolean;
+}
+
+// Backup & Recovery
+export type BackupStatusType = "scheduled" | "running" | "completed" | "failed" | "partial";
+
+export interface BackupSnapshot {
+  id: string;
+  type: "full" | "incremental" | "collection";
+  collections: string[];
+  status: BackupStatusType;
+  recordCount: number;
+  sizeGb: number;
+  startedAt: string;
+  completedAt?: string;
+  storagePath: string;
+  retentionDays: number;
+  triggeredBy: "schedule" | "manual" | "pre-deploy";
+}
+
+export interface RecoveryPoint {
+  snapshotId: string;
+  timestamp: string;
+  collectionsIncluded: string[];
+  estimatedRecoveryMinutes: number;
+  verified: boolean;
+}
+
+// Caching
+export interface CacheLayerStats {
+  layer: "memory" | "cdn" | "regional" | "api";
+  hitRate: number;
+  missRate: number;
+  avgLatencyMs: number;
+  keys: number;
+  evictions: number;
+  sizeKb: number;
+}
+
+// Cost Optimization
+export type CostCategory = "firestore_reads" | "firestore_writes" | "storage" | "functions" | "egress" | "satellite_api";
+
+export interface CostEntry {
+  category: CostCategory;
+  month: string;
+  costUSD: number;
+  units: number;
+  unitName: string;
+  trend: "increasing" | "stable" | "decreasing";
+}
+
+export interface CostOptimization {
+  id: string;
+  category: CostCategory;
+  issue: string;
+  recommendation: string;
+  estimatedSavingUSD: number;
+  effort: "low" | "medium" | "high";
+  priority: "critical" | "high" | "medium" | "low";
+}
+
+export interface ScalingForecast {
+  month: string;
+  estimatedFarms: number;
+  estimatedCostUSD: number;
+  firestoreReadsM: number;
+  storageGb: number;
+  apiCallsM: number;
+}
+
+// Production Analytics
+export type WorkflowName = "farm_onboarding" | "evidence_upload" | "report_generation" | "audit_review" | "api_query" | "offline_sync";
+
+export interface WorkflowMetric {
+  workflow: WorkflowName;
+  completionRate: number;
+  avgDurationMs: number;
+  p95DurationMs: number;
+  dailyVolume: number;
+  errorRate: number;
+  dropoffStep?: string;
+}
+
+export interface RegionalUsageMetric {
+  state: string;
+  activeFarms: number;
+  monthlyScans: number;
+  offlineSyncPct: number;
+  mobileUsagePct: number;
+  avgConfidence: number;
+}
+
+// DevOps
+export type DeploymentStatus = "pending" | "building" | "deployed" | "failed" | "rolled_back";
+export type DeploymentEnvironment = "production" | "preview" | "staging";
+
+export interface DeploymentRecord {
+  id: string;
+  environment: DeploymentEnvironment;
+  status: DeploymentStatus;
+  branch: string;
+  commit: string;
+  commitMessage: string;
+  triggeredBy: string;
+  startedAt: string;
+  completedAt?: string;
+  durationMs?: number;
+  pageCount: number;
+  url?: string;
+}
+
+export interface EnvironmentCheck {
+  name: string;
+  status: "pass" | "fail" | "warn";
+  message: string;
+}
+
+export interface EnvironmentValidation {
+  env: DeploymentEnvironment;
+  checks: EnvironmentCheck[];
+  overallStatus: "healthy" | "degraded" | "failed";
+  validatedAt: string;
+}
+
+// Reliability Scoring
+export interface ReliabilityScore {
+  overall: number;
+  components: {
+    availability: number;
+    latency: number;
+    errorRate: number;
+    security: number;
+    dataIntegrity: number;
+  };
+  slaCompliancePct: number;
+  trend: "improving" | "stable" | "degrading";
+}

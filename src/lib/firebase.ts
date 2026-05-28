@@ -105,4 +105,12 @@ export const COLLECTIONS = {
   SEASONAL_INTEL: "seasonal_intel",
   PIPELINE_JOBS: "pipeline_jobs",
   INFRA_STATUS: "infra_status",
+  // Phase 11 — Production Hardening
+  INCIDENTS: "incidents",
+  AUDIT_TRAIL: "audit_trail",
+  BACKUP_SNAPSHOTS: "backup_snapshots",
+  COST_ENTRIES: "cost_entries",
+  DEPLOYMENTS: "deployments",
+  RELIABILITY_SCORES: "reliability_scores",
+  ABUSE_EVENTS: "abuse_events",
 } as const;

@@ -9,6 +9,7 @@ import {
   Settings, ChevronLeft, ChevronRight, LogOut, HelpCircle,
   X, Camera, ShieldCheck, Building2, Shield, Brain,
   Link2, Globe, Activity, Key, BookOpen,
+  Server, Lock, DollarSign, TrendingUp, GitBranch,
 } from "lucide-react";
 import { VasudhaLogo, VasudhaIcon } from "@/components/ui/vasudha-logo";
 import { cn } from "@/lib/utils";
@@ -32,8 +33,13 @@ const NAV_ITEMS: Array<{ label: string; href: string; icon: typeof LayoutDashboa
   { label: "API Portal",   href: "/api-portal",    icon: Key },
   { label: "Methodology",  href: "/methodology",   icon: BookOpen },
   { label: "Organization", href: "/organization",  icon: Building2 },
-  { label: "Pilot",        href: "/pilot",         icon: Building2, roles: ["admin", "org_manager"] },
-  { label: "Admin",        href: "/admin",          icon: Shield,    roles: ["admin"] },
+  { label: "Status",        href: "/status",        icon: Server },
+  { label: "Security",      href: "/security",      icon: Lock },
+  { label: "Cost",          href: "/cost",          icon: DollarSign },
+  { label: "Analytics",     href: "/analytics",     icon: TrendingUp },
+  { label: "DevOps",        href: "/devops",        icon: GitBranch },
+  { label: "Pilot",         href: "/pilot",         icon: Building2, roles: ["admin", "org_manager"] },
+  { label: "Admin",         href: "/admin",         icon: Shield,    roles: ["admin"] },
 ];
 
 const BOTTOM_ITEMS = [
