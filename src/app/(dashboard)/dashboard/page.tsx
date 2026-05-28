@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useFarms } from "@/hooks/use-farms";
+import { useActivity } from "@/hooks/use-activity";
 import { StatsCard } from "@/components/dashboard/stats-card";
 import { CarbonScoreChart, NDVIChart } from "@/components/dashboard/carbon-chart";
 import { ActivityFeed } from "@/components/dashboard/activity-feed";
@@ -142,6 +143,7 @@ function useDashboardIntelligence(farms: Farm[]) {
 export default function DashboardPage() {
   const { user } = useAuth();
   const { farms, loading: farmsLoading } = useFarms(user?.uid ?? null);
+  const { events: activityEvents, loading: activityLoading } = useActivity(user?.uid ?? null, 10);
   const intel = useDashboardIntelligence(farms);
   const firstName = user?.displayName?.split(" ")[0] ?? "there";
 
@@ -464,7 +466,10 @@ export default function DashboardPage() {
               <CardTitle>Recent Activity</CardTitle>
             </CardHeader>
             <CardContent className="pt-0">
-              <ActivityFeed />
+              <ActivityFeed
+                items={activityEvents}
+                loading={activityLoading}
+              />
             </CardContent>
           </Card>
         </div>

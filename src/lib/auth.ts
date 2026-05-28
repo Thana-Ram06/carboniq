@@ -70,7 +70,7 @@ export async function ensureUserDocument(user: User): Promise<void> {
       email: user.email,
       displayName: user.displayName,
       photoURL: user.photoURL,
-      role: "analyst",
+      role: "farmer",
       onboardingComplete: false,
     };
     await setDoc(ref, { ...appUser, createdAt: serverTimestamp() });

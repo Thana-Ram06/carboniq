@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getFarm, getFarmEvidence, getLatestAuditForFarm, saveMonitoringReport, addVerificationLog } from "@/lib/firestore";
+import { createNotification } from "@/lib/notifications/notification-service";
+import { logActivity } from "@/lib/activity/activity-service";
 import { computeFarmNDVI } from "@/lib/satellite/ndvi-engine";
 import { computeHealthScore } from "@/lib/intelligence/health-scoring";
 import { computeCarbonIntelligence } from "@/lib/intelligence/carbon-intelligence";
@@ -59,6 +61,28 @@ export async function POST(req: NextRequest) {
       details: `${format.toUpperCase()} report generated. Confidence: ${confidence.overall}/100 (${confidence.label}).`,
       metadata: { reportId, format, confidence: confidence.overall },
     });
+
+    await Promise.all([
+      createNotification({
+        userId,
+        type: "report_ready",
+        title: "MRV report ready",
+        message: `${format.toUpperCase()} report for ${farm.name} generated. Confidence: ${confidence.overall}/100 (${confidence.label}).`,
+        farmId,
+        farmName: farm.name,
+        actionUrl: "/reports",
+        severity: "info",
+      }),
+      logActivity({
+        userId,
+        type: "report_generated",
+        title: "MRV report generated",
+        description: `${format.toUpperCase()} · Confidence ${confidence.overall}/100 · ${confidence.label}`,
+        farmId,
+        farmName: farm.name,
+        metadata: { reportId, format, confidence: confidence.overall },
+      }),
+    ]);
 
     return NextResponse.json({ reportId, reportData, payload });
   } catch (err) {

@@ -1,0 +1,189 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── Helpers ─────────────────────────────────────────────────────────────
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    function isOwner(uid) {
+      return isSignedIn() && request.auth.uid == uid;
+    }
+    function getUserRole() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+    }
+    function isAdmin() {
+      return isSignedIn() && getUserRole() == 'admin';
+    }
+    function isAuditorOrAbove() {
+      return isSignedIn() && getUserRole() in ['auditor', 'org_manager', 'admin'];
+    }
+    function isOrgManagerOrAbove() {
+      return isSignedIn() && getUserRole() in ['org_manager', 'admin'];
+    }
+
+    // ── Users ────────────────────────────────────────────────────────────────
+    match /users/{uid} {
+      allow read: if isOwner(uid) || isAdmin();
+      allow create: if isOwner(uid);
+      allow update: if isOwner(uid) || isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    match /user_profiles/{uid} {
+      allow read: if isOwner(uid) || isAdmin();
+      allow write: if isOwner(uid) || isAdmin();
+    }
+
+    // ── Farms ────────────────────────────────────────────────────────────────
+    match /farms/{farmId} {
+      allow read: if isSignedIn() && (
+        resource.data.userId == request.auth.uid || isAuditorOrAbove()
+      );
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow update: if isSignedIn() && (
+        resource.data.userId == request.auth.uid || isOrgManagerOrAbove()
+      );
+      allow delete: if isSignedIn() && (
+        resource.data.userId == request.auth.uid || isAdmin()
+      );
+    }
+
+    match /farm_boundaries/{farmId} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn() && (
+        get(/databases/$(database)/documents/farms/$(farmId)).data.userId == request.auth.uid
+        || isAdmin()
+      );
+    }
+
+    // ── Satellite & Analytics ────────────────────────────────────────────────
+    match /satellite_analytics/{docId} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn();
+    }
+    match /ndvi_history/{docId} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn();
+    }
+    match /farm_insights/{docId} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn();
+    }
+    match /carbon_analytics/{docId} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn();
+    }
+    match /vegetation_scores/{docId} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn();
+    }
+    match /carbon_estimations/{docId} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn();
+    }
+
+    // ── Monitoring ───────────────────────────────────────────────────────────
+    match /monitoring_jobs/{docId} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn();
+    }
+    match /weather_analytics/{docId} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn();
+    }
+    match /risk_alerts/{docId} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn();
+    }
+    match /farm_timelines/{docId} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn();
+    }
+    match /scan_jobs/{docId} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn();
+    }
+
+    // ── Evidence ─────────────────────────────────────────────────────────────
+    match /farm_evidence/{docId} {
+      allow read: if isSignedIn() && (
+        resource.data.userId == request.auth.uid || isAuditorOrAbove()
+      );
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow update: if isSignedIn() && (
+        resource.data.userId == request.auth.uid || isAuditorOrAbove()
+      );
+      allow delete: if isSignedIn() && (
+        resource.data.userId == request.auth.uid || isAdmin()
+      );
+    }
+
+    // ── Audit Reviews ────────────────────────────────────────────────────────
+    match /audit_reviews/{docId} {
+      allow read: if isSignedIn() && (
+        resource.data.userId == request.auth.uid || isAuditorOrAbove()
+      );
+      allow create: if isAuditorOrAbove();
+      allow update: if isAuditorOrAbove();
+      allow delete: if isAdmin();
+    }
+
+    // ── Organizations ────────────────────────────────────────────────────────
+    match /organizations/{orgId} {
+      allow read: if isSignedIn() && (
+        request.auth.uid in resource.data.members.keys() || isAdmin()
+      );
+      allow create: if isSignedIn();
+      allow update: if isSignedIn() && (
+        resource.data.ownerId == request.auth.uid || isOrgManagerOrAbove()
+      );
+      allow delete: if isAdmin();
+    }
+
+    // ── Reports ──────────────────────────────────────────────────────────────
+    match /monitoring_reports/{docId} {
+      allow read: if isSignedIn() && (
+        resource.data.userId == request.auth.uid || isAuditorOrAbove()
+      );
+      allow create: if isSignedIn();
+      allow update: if isSignedIn() && (
+        resource.data.userId == request.auth.uid || isAuditorOrAbove()
+      );
+      allow delete: if isAdmin();
+    }
+    match /reports/{docId} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn();
+    }
+
+    // ── Verification Logs ────────────────────────────────────────────────────
+    match /verification_logs/{docId} {
+      allow read: if isSignedIn() && (
+        resource.data.userId == request.auth.uid || isAuditorOrAbove()
+      );
+      allow create: if isSignedIn();
+      allow update, delete: if isAdmin();
+    }
+
+    // ── Notifications ────────────────────────────────────────────────────────
+    match /notifications/{docId} {
+      allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn();
+      allow update: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow delete: if isSignedIn() && resource.data.userId == request.auth.uid;
+    }
+
+    // ── Activity Events ──────────────────────────────────────────────────────
+    match /activity_events/{docId} {
+      allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn();
+      allow update, delete: if isAdmin();
+    }
+
+    // ── Activity (legacy) ────────────────────────────────────────────────────
+    match /activity/{docId} {
+      allow read, write: if isSignedIn();
+    }
+  }
+}

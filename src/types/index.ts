@@ -5,15 +5,65 @@ import type { Timestamp } from "firebase/firestore";
 // AUTH TYPES
 // ──────────────────────────────────────────
 
+export type UserRole = "farmer" | "auditor" | "org_manager" | "admin";
+
 export interface AppUser {
   uid: string;
   email: string | null;
   displayName: string | null;
   photoURL: string | null;
   createdAt: Timestamp | null;
-  role: "admin" | "analyst" | "viewer";
-  organization?: string;
+  role: UserRole;
+  orgId?: string;
   onboardingComplete: boolean;
+}
+
+export type NotificationType =
+  | "scan_complete"
+  | "scan_failed"
+  | "audit_update"
+  | "evidence_validated"
+  | "risk_alert"
+  | "report_ready"
+  | "org_invite"
+  | "system";
+
+export interface AppNotification {
+  id: string;
+  userId: string;
+  type: NotificationType;
+  title: string;
+  message: string;
+  read: boolean;
+  farmId?: string;
+  farmName?: string;
+  actionUrl?: string;
+  severity?: "info" | "warning" | "critical";
+  createdAt: Timestamp;
+}
+
+export type ActivityEventType =
+  | "farm_added"
+  | "farm_updated"
+  | "ndvi_update"
+  | "carbon_estimated"
+  | "analysis_complete"
+  | "report_generated"
+  | "evidence_uploaded"
+  | "audit_submitted"
+  | "risk_alert"
+  | "scan_triggered";
+
+export interface ActivityEvent {
+  id: string;
+  userId: string;
+  type: ActivityEventType;
+  title: string;
+  description: string;
+  farmId?: string;
+  farmName?: string;
+  metadata?: Record<string, string | number | boolean>;
+  createdAt: Timestamp;
 }
 
 export type FirebaseUser = User;

@@ -25,6 +25,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/use-auth";
+import { useRole } from "@/hooks/use-role";
+import { getRoleLabel } from "@/lib/rbac/permissions";
 import toast from "react-hot-toast";
 import Image from "next/image";
 
@@ -60,6 +62,7 @@ function SettingRow({
 
 export default function SettingsPage() {
   const { user, signOut } = useAuth();
+  const { role } = useRole();
   const { theme, setTheme } = useTheme();
   const [name, setName] = useState(user?.displayName ?? "");
   const [notifications, setNotifications] = useState({
@@ -115,7 +118,7 @@ export default function SettingsPage() {
                 </p>
                 <p className="text-sm text-muted-foreground">{user?.email}</p>
                 <Badge variant="green" size="sm" className="mt-1">
-                  Analyst
+                  {getRoleLabel(role)}
                 </Badge>
               </div>
             </div>

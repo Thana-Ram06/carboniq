@@ -5,6 +5,8 @@ import {
   getFarmAuditHistory,
   addVerificationLog,
 } from "@/lib/firestore";
+import { createNotification } from "@/lib/notifications/notification-service";
+import { logActivity } from "@/lib/activity/activity-service";
 import type { AuditStatus, AuditChecklistItem } from "@/types";
 
 // POST — create new audit or update existing
@@ -59,6 +61,26 @@ export async function POST(req: NextRequest) {
         metadata: { reviewId: body.reviewId, status: body.status },
       });
 
+      await Promise.all([
+        createNotification({
+          userId: body.userId,
+          type: "audit_update",
+          title: `Audit ${body.status}`,
+          message: body.comments || `Your farm audit has been ${body.status}.`,
+          farmId: body.farmId,
+          actionUrl: "/audit",
+          severity: body.status === "approved" ? "info" : "warning",
+        }),
+        logActivity({
+          userId: body.userId,
+          type: "audit_submitted",
+          title: `Audit ${body.status}`,
+          description: body.comments || `Audit updated to ${body.status}`,
+          farmId: body.farmId,
+          metadata: { reviewId: body.reviewId, status: body.status },
+        }),
+      ]);
+
       return NextResponse.json({ reviewId: body.reviewId, status: body.status });
     }
 
@@ -89,6 +111,26 @@ export async function POST(req: NextRequest) {
       details: `Audit review created with status: ${body.status}`,
       metadata: { reviewId, status: body.status },
     });
+
+    await Promise.all([
+      createNotification({
+        userId: body.userId,
+        type: "audit_update",
+        title: "Audit review submitted",
+        message: `A new audit review has been submitted with status: ${body.status}.`,
+        farmId: body.farmId,
+        actionUrl: "/audit",
+        severity: "info",
+      }),
+      logActivity({
+        userId: body.userId,
+        type: "audit_submitted",
+        title: "Audit submitted",
+        description: `Review created with status: ${body.status}`,
+        farmId: body.farmId,
+        metadata: { reviewId, status: body.status },
+      }),
+    ]);
 
     return NextResponse.json({ reviewId, status: body.status });
   } catch (err) {

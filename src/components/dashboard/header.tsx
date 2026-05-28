@@ -2,9 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { useTheme } from "next-themes";
-import { Sun, Moon, Bell, Search, ChevronRight, Menu } from "lucide-react";
+import { Sun, Moon, Search, ChevronRight, Menu } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/hooks/use-auth";
+import { NotificationBell } from "@/components/notifications/NotificationBell";
 import Image from "next/image";
 
 const BREADCRUMBS: Record<string, string> = {
@@ -12,7 +13,9 @@ const BREADCRUMBS: Record<string, string> = {
   "/farms": "Farms",
   "/satellite": "Satellite Analytics",
   "/carbon": "Carbon Estimation",
-  "/reports": "Reports",
+  "/evidence": "Field Evidence",
+  "/audit": "Audit & Verification",
+  "/reports": "MRV Reports",
   "/settings": "Settings",
 };
 
@@ -26,18 +29,15 @@ export function Header({ onMenuClick }: HeaderProps) {
   const { user } = useAuth();
   const [mounted, setMounted] = useState(false);
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  useEffect(() => { setMounted(true); }, []);
 
   const pathParts = pathname.split("/").filter(Boolean);
   const currentPage = BREADCRUMBS[`/${pathParts[0]}`] ?? pathParts[0];
 
   return (
     <header className="h-14 md:h-16 flex items-center justify-between px-4 md:px-6 border-b border-border bg-background/80 backdrop-blur-sm flex-shrink-0 gap-3">
-      {/* Left: hamburger (mobile) + breadcrumb */}
+      {/* Left: hamburger + breadcrumb */}
       <div className="flex items-center gap-3 min-w-0">
-        {/* Mobile hamburger */}
         <button
           onClick={onMenuClick}
           className="md:hidden w-9 h-9 rounded-xl flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-foreground/5 transition-all flex-shrink-0"
@@ -46,21 +46,14 @@ export function Header({ onMenuClick }: HeaderProps) {
           <Menu className="w-5 h-5" />
         </button>
 
-        {/* Breadcrumb */}
         <div className="flex items-center gap-1.5 text-sm min-w-0">
-          <span className="text-muted-foreground hidden sm:block truncate">
-            VasudhaCarbon
-          </span>
+          <span className="text-muted-foreground hidden sm:block truncate">VasudhaCarbon</span>
           <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/40 hidden sm:block flex-shrink-0" />
-          <span className="text-foreground font-medium truncate">
-            {currentPage}
-          </span>
+          <span className="text-foreground font-medium truncate">{currentPage}</span>
           {pathParts.length > 1 && (
             <>
               <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/40 flex-shrink-0" />
-              <span className="text-muted-foreground truncate">
-                {pathParts[1]}
-              </span>
+              <span className="text-muted-foreground truncate">{pathParts[1]}</span>
             </>
           )}
         </div>
@@ -72,16 +65,11 @@ export function Header({ onMenuClick }: HeaderProps) {
         <button className="hidden lg:flex items-center gap-2 h-9 px-3 rounded-xl border border-border bg-card text-muted-foreground text-sm hover:border-green-500/20 hover:text-foreground transition-all">
           <Search className="w-3.5 h-3.5" />
           <span className="text-xs">Search...</span>
-          <kbd className="ml-1 text-xs border border-border rounded px-1.5 py-0.5 text-muted-foreground/60 font-mono">
-            ⌘K
-          </kbd>
+          <kbd className="ml-1 text-xs border border-border rounded px-1.5 py-0.5 text-muted-foreground/60 font-mono">⌘K</kbd>
         </button>
 
-        {/* Notifications */}
-        <button className="relative w-9 h-9 rounded-xl border border-border bg-card flex items-center justify-center text-muted-foreground hover:text-foreground hover:border-green-500/20 transition-all">
-          <Bell className="w-4 h-4" />
-          <span className="absolute top-2 right-2 w-1.5 h-1.5 rounded-full bg-green-400" />
-        </button>
+        {/* Live notification bell */}
+        <NotificationBell />
 
         {/* Theme toggle */}
         {mounted && (
@@ -90,28 +78,17 @@ export function Header({ onMenuClick }: HeaderProps) {
             className="w-9 h-9 rounded-xl border border-border bg-card flex items-center justify-center text-muted-foreground hover:text-foreground hover:border-green-500/20 transition-all"
             aria-label="Toggle theme"
           >
-            {theme === "dark" ? (
-              <Sun className="w-4 h-4" />
-            ) : (
-              <Moon className="w-4 h-4" />
-            )}
+            {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
           </button>
         )}
 
         {/* User avatar */}
         <div className="w-9 h-9 rounded-xl overflow-hidden border border-border bg-green-500/10 flex items-center justify-center cursor-pointer hover:border-green-500/30 transition-all flex-shrink-0">
           {user?.photoURL ? (
-            <Image
-              src={user.photoURL}
-              alt={user.displayName ?? "User"}
-              width={36}
-              height={36}
-            />
+            <Image src={user.photoURL} alt={user.displayName ?? "User"} width={36} height={36} />
           ) : (
             <span className="text-sm font-semibold text-green-400">
-              {user?.displayName?.[0]?.toUpperCase() ??
-                user?.email?.[0]?.toUpperCase() ??
-                "U"}
+              {user?.displayName?.[0]?.toUpperCase() ?? user?.email?.[0]?.toUpperCase() ?? "U"}
             </span>
           )}
         </div>

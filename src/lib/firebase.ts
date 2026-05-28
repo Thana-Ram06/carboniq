@@ -74,4 +74,8 @@ export const COLLECTIONS = {
   ORGANIZATIONS: "organizations",
   MONITORING_REPORTS: "monitoring_reports",
   VERIFICATION_LOGS: "verification_logs",
+  // Phase 6 — Enterprise
+  NOTIFICATIONS: "notifications",
+  ACTIVITY_EVENTS: "activity_events",
+  USER_PROFILES: "user_profiles",
 } as const;

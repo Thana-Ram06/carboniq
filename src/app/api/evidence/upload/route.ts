@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { saveFarmEvidence, addVerificationLog } from "@/lib/firestore";
 import { validateEvidenceGps } from "@/lib/verification/evidence-validator";
 import { getFarm } from "@/lib/firestore";
+import { createNotification } from "@/lib/notifications/notification-service";
+import { logActivity } from "@/lib/activity/activity-service";
 import type { EvidenceType, GpsCoordinate } from "@/types";
 
 export async function POST(req: NextRequest) {
@@ -61,6 +63,28 @@ export async function POST(req: NextRequest) {
       details: `Uploaded ${type}: "${title}". GPS: ${validation.message}`,
       metadata: { evidenceId, gpsStatus: validation.status },
     });
+
+    await Promise.all([
+      createNotification({
+        userId,
+        type: "evidence_validated",
+        title: "Evidence uploaded",
+        message: `"${title}" (${type}) uploaded for ${farm.name}. GPS: ${validation.status}`,
+        farmId,
+        farmName: farm.name,
+        actionUrl: "/evidence",
+        severity: validation.status === "valid" ? "info" : "warning",
+      }),
+      logActivity({
+        userId,
+        type: "evidence_uploaded",
+        title: "Evidence uploaded",
+        description: `${type}: "${title}" — ${validation.message}`,
+        farmId,
+        farmName: farm.name,
+        metadata: { evidenceId, gpsStatus: validation.status },
+      }),
+    ]);
 
     return NextResponse.json({
       evidenceId,

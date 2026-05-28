@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Sidebar } from "@/components/dashboard/sidebar";
 import { Header } from "@/components/dashboard/header";
 import { useAuth } from "@/hooks/use-auth";
+import { RoleProvider } from "@/contexts/role-context";
 import { VasudhaLogo } from "@/components/ui/vasudha-logo";
 
 export default function DashboardLayout({
@@ -17,15 +18,10 @@ export default function DashboardLayout({
   const [mobileOpen, setMobileOpen] = useState(false);
 
   useEffect(() => {
-    if (!loading && !user) {
-      router.replace("/login");
-    }
+    if (!loading && !user) router.replace("/login");
   }, [user, loading, router]);
 
-  // Close mobile drawer on route change
-  useEffect(() => {
-    setMobileOpen(false);
-  }, []);
+  useEffect(() => { setMobileOpen(false); }, []);
 
   if (loading) {
     return (
@@ -49,23 +45,22 @@ export default function DashboardLayout({
   if (!user) return null;
 
   return (
-    <div className="flex h-screen bg-background overflow-hidden">
-      {/* Mobile backdrop */}
-      {mobileOpen && (
-        <div
-          className="fixed inset-0 z-30 bg-black/60 backdrop-blur-sm md:hidden"
-          onClick={() => setMobileOpen(false)}
-        />
-      )}
-
-      <Sidebar mobileOpen={mobileOpen} onClose={() => setMobileOpen(false)} />
-
-      <div className="flex flex-col flex-1 overflow-hidden min-w-0">
-        <Header onMenuClick={() => setMobileOpen((v) => !v)} />
-        <main className="flex-1 overflow-y-auto">
-          <div className="p-4 md:p-6 max-w-screen-2xl">{children}</div>
-        </main>
+    <RoleProvider>
+      <div className="flex h-screen bg-background overflow-hidden">
+        {mobileOpen && (
+          <div
+            className="fixed inset-0 z-30 bg-black/60 backdrop-blur-sm md:hidden"
+            onClick={() => setMobileOpen(false)}
+          />
+        )}
+        <Sidebar mobileOpen={mobileOpen} onClose={() => setMobileOpen(false)} />
+        <div className="flex flex-col flex-1 overflow-hidden min-w-0">
+          <Header onMenuClick={() => setMobileOpen((v) => !v)} />
+          <main className="flex-1 overflow-y-auto">
+            <div className="p-4 md:p-6 max-w-screen-2xl">{children}</div>
+          </main>
+        </div>
       </div>
-    </div>
+    </RoleProvider>
   );
 }

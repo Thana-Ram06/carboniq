@@ -5,37 +5,29 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import {
-  LayoutDashboard,
-  Map,
-  Satellite,
-  BarChart3,
-  FileText,
-  Settings,
-  ChevronLeft,
-  ChevronRight,
-  LogOut,
-  HelpCircle,
-  X,
-  Camera,
-  ShieldCheck,
+  LayoutDashboard, Map, Satellite, BarChart3, FileText,
+  Settings, ChevronLeft, ChevronRight, LogOut, HelpCircle,
+  X, Camera, ShieldCheck,
 } from "lucide-react";
 import { VasudhaLogo, VasudhaIcon } from "@/components/ui/vasudha-logo";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/use-auth";
+import { useRole } from "@/hooks/use-role";
+import { getRoleLabel, getRoleColor } from "@/lib/rbac/permissions";
 
 const NAV_ITEMS = [
-  { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { label: "Farms", href: "/farms", icon: Map },
-  { label: "Satellite", href: "/satellite", icon: Satellite },
-  { label: "Carbon", href: "/carbon", icon: BarChart3 },
-  { label: "Evidence", href: "/evidence", icon: Camera },
-  { label: "Audit", href: "/audit", icon: ShieldCheck },
-  { label: "Reports", href: "/reports", icon: FileText },
+  { label: "Dashboard",  href: "/dashboard", icon: LayoutDashboard },
+  { label: "Farms",      href: "/farms",      icon: Map },
+  { label: "Satellite",  href: "/satellite",  icon: Satellite },
+  { label: "Carbon",     href: "/carbon",     icon: BarChart3 },
+  { label: "Evidence",   href: "/evidence",   icon: Camera },
+  { label: "Audit",      href: "/audit",      icon: ShieldCheck },
+  { label: "Reports",    href: "/reports",    icon: FileText },
 ];
 
 const BOTTOM_ITEMS = [
   { label: "Settings", href: "/settings", icon: Settings },
-  { label: "Help", href: "#", icon: HelpCircle },
+  { label: "Help",     href: "#",          icon: HelpCircle },
 ];
 
 interface SidebarProps {
@@ -48,6 +40,7 @@ export function Sidebar({ mobileOpen = false, onClose }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const { user, signOut } = useAuth();
+  const { role } = useRole();
 
   const handleSignOut = async () => {
     await signOut();
@@ -79,14 +72,10 @@ export function Sidebar({ mobileOpen = false, onClose }: SidebarProps) {
         <Icon
           className={cn(
             "w-4 h-4 flex-shrink-0 transition-colors",
-            active
-              ? "text-green-400"
-              : "text-muted-foreground/60 group-hover:text-foreground"
+            active ? "text-green-400" : "text-muted-foreground/60 group-hover:text-foreground"
           )}
         />
-        {(!collapsed || mobileOpen) && (
-          <span className="text-sm font-medium">{label}</span>
-        )}
+        {(!collapsed || mobileOpen) && <span className="text-sm font-medium">{label}</span>}
         {active && (!collapsed || mobileOpen) && (
           <div className="ml-auto w-1 h-4 rounded-full bg-green-400/70" />
         )}
@@ -103,12 +92,7 @@ export function Sidebar({ mobileOpen = false, onClose }: SidebarProps) {
           collapsed && !mobileOpen ? "justify-center" : "justify-between"
         )}
       >
-        {collapsed && !mobileOpen ? (
-          <VasudhaIcon size={28} />
-        ) : (
-          <VasudhaLogo height={28} tagline={false} />
-        )}
-        {/* Mobile close button */}
+        {collapsed && !mobileOpen ? <VasudhaIcon size={28} /> : <VasudhaLogo height={28} tagline={false} />}
         {mobileOpen && (
           <button
             onClick={onClose}
@@ -127,13 +111,7 @@ export function Sidebar({ mobileOpen = false, onClose }: SidebarProps) {
               pathname === item.href ||
               (item.href !== "/dashboard" && pathname.startsWith(item.href));
             return (
-              <NavLink
-                key={item.href}
-                href={item.href}
-                icon={item.icon}
-                label={item.label}
-                active={active}
-              />
+              <NavLink key={item.href} href={item.href} icon={item.icon} label={item.label} active={active} />
             );
           })}
         </div>
@@ -142,13 +120,7 @@ export function Sidebar({ mobileOpen = false, onClose }: SidebarProps) {
           {BOTTOM_ITEMS.map((item) => {
             const active = pathname === item.href;
             return (
-              <NavLink
-                key={item.href}
-                href={item.href}
-                icon={item.icon}
-                label={item.label}
-                active={active}
-              />
+              <NavLink key={item.href} href={item.href} icon={item.icon} label={item.label} active={active} />
             );
           })}
         </div>
@@ -165,27 +137,16 @@ export function Sidebar({ mobileOpen = false, onClose }: SidebarProps) {
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-full bg-green-500/10 border border-green-500/20 flex-shrink-0 overflow-hidden">
               {user?.photoURL ? (
-                <Image
-                  src={user.photoURL}
-                  alt={user.displayName ?? "User"}
-                  width={32}
-                  height={32}
-                />
+                <Image src={user.photoURL} alt={user.displayName ?? "User"} width={32} height={32} />
               ) : (
                 <div className="w-full h-full flex items-center justify-center text-xs text-green-400 font-semibold">
-                  {user?.displayName?.[0]?.toUpperCase() ??
-                    user?.email?.[0]?.toUpperCase() ??
-                    "U"}
+                  {user?.displayName?.[0]?.toUpperCase() ?? user?.email?.[0]?.toUpperCase() ?? "U"}
                 </div>
               )}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-xs font-medium text-foreground truncate">
-                {user?.displayName ?? "User"}
-              </p>
-              <p className="text-xs text-muted-foreground truncate">
-                {user?.email}
-              </p>
+              <p className="text-xs font-medium text-foreground truncate">{user?.displayName ?? "User"}</p>
+              <p className={cn("text-[10px] font-medium capitalize", getRoleColor(role))}>{getRoleLabel(role)}</p>
             </div>
             <button
               onClick={handleSignOut}
@@ -218,16 +179,11 @@ export function Sidebar({ mobileOpen = false, onClose }: SidebarProps) {
         )}
       >
         {sidebarContent}
-        {/* Collapse toggle */}
         <button
           onClick={() => setCollapsed(!collapsed)}
           className="absolute -right-3 top-20 w-6 h-6 rounded-full bg-card border border-border flex items-center justify-center text-muted-foreground hover:text-green-400 hover:border-green-500/30 transition-all z-10 shadow-sm"
         >
-          {collapsed ? (
-            <ChevronRight className="w-3 h-3" />
-          ) : (
-            <ChevronLeft className="w-3 h-3" />
-          )}
+          {collapsed ? <ChevronRight className="w-3 h-3" /> : <ChevronLeft className="w-3 h-3" />}
         </button>
       </aside>
 
