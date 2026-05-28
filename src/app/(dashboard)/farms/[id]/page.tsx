@@ -47,6 +47,7 @@ import { WeatherWidget } from "@/components/monitoring/WeatherWidget";
 import { RiskAlertCard, RiskScoreBadge } from "@/components/monitoring/RiskAlertCard";
 import { assessRisk, riskSeverityColor } from "@/lib/monitoring/risk-engine";
 import type { RiskAssessment } from "@/lib/monitoring/risk-engine";
+import { AIPredictionDashboard } from "@/components/ai/AIPredictionDashboard";
 import type { Farm } from "@/types";
 import Link from "next/link";
 
@@ -665,6 +666,9 @@ export default function FarmDetailPage() {
           </CardContent>
         </Card>
       )}
+
+      {/* ── AI Intelligence ─────────────────────────────────────────────────── */}
+      <AIPredictionDashboard farm={farm} evidenceCount={0} auditApproved={false} />
 
       {/* ── Quick actions ───────────────────────────────────────────────────── */}
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pb-6">

@@ -7,7 +7,7 @@ import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard, Map, Satellite, BarChart3, FileText,
   Settings, ChevronLeft, ChevronRight, LogOut, HelpCircle,
-  X, Camera, ShieldCheck, Building2, Shield,
+  X, Camera, ShieldCheck, Building2, Shield, Brain,
 } from "lucide-react";
 import { VasudhaLogo, VasudhaIcon } from "@/components/ui/vasudha-logo";
 import { cn } from "@/lib/utils";
@@ -23,9 +23,10 @@ const NAV_ITEMS: Array<{ label: string; href: string; icon: typeof LayoutDashboa
   { label: "Carbon",     href: "/carbon",     icon: BarChart3 },
   { label: "Evidence",   href: "/evidence",   icon: Camera },
   { label: "Audit",      href: "/audit",      icon: ShieldCheck },
-  { label: "Reports",    href: "/reports",    icon: FileText },
-  { label: "Pilot",      href: "/pilot",      icon: Building2, roles: ["admin", "org_manager"] },
-  { label: "Admin",      href: "/admin",      icon: Shield,    roles: ["admin"] },
+  { label: "Reports",      href: "/reports",      icon: FileText },
+  { label: "Intelligence", href: "/intelligence", icon: Brain },
+  { label: "Pilot",        href: "/pilot",        icon: Building2, roles: ["admin", "org_manager"] },
+  { label: "Admin",        href: "/admin",         icon: Shield,    roles: ["admin"] },
 ];
 
 const BOTTOM_ITEMS = [

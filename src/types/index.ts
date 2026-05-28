@@ -732,6 +732,134 @@ export interface AdminPlatformStats {
 }
 
 // ──────────────────────────────────────────
+// PHASE 9 — AI & SCIENTIFIC CREDIBILITY
+// ──────────────────────────────────────────
+
+export type AnomalyType =
+  | "ndvi_collapse" | "ndvi_spike" | "seasonal_deviation"
+  | "evidence_gap"  | "pattern_break";
+export type AnomalySeverity = "low" | "medium" | "high" | "critical";
+
+export interface AnomalyEvent {
+  month: string;
+  ndvi: number;
+  expected: number;
+  deviation: number;
+  zScore: number;
+  type: AnomalyType;
+}
+
+export interface AnomalyDetection {
+  id: string;
+  farmId: string;
+  userId: string;
+  anomalyCount: number;
+  maxZScore: number;
+  severity: AnomalySeverity;
+  events: AnomalyEvent[];
+  overallConfidence: number;
+  computedAt: Timestamp;
+}
+
+export interface CropPrediction {
+  id: string;
+  farmId: string;
+  userId: string;
+  predictedCrop: CropType;
+  confidence: number;
+  alternativeCrops: Array<{ crop: CropType; confidence: number }>;
+  signatureMatch: number;
+  seasonalAlignment: "kharif" | "rabi" | "zaid" | "perennial";
+  computedAt: Timestamp;
+}
+
+export interface YieldForecast {
+  id: string;
+  farmId: string;
+  userId: string;
+  predictedYieldTonnesHa: number;
+  yieldConfidence: number;
+  totalProductionTonnes: number;
+  benchmarkYieldTonnesHa: number;
+  performanceVsBenchmark: number;
+  forecastSeason: string;
+  computedAt: Timestamp;
+}
+
+export interface ForecastDataPoint {
+  month: string;
+  ndvi: number;
+  lower: number;
+  upper: number;
+  isForecast: boolean;
+}
+
+export interface VegetationForecast {
+  id: string;
+  farmId: string;
+  userId: string;
+  history: ForecastDataPoint[];
+  forecast: ForecastDataPoint[];
+  trendSlope: number;
+  droughtProbability: number;
+  stressProbability: number;
+  confidenceInterval: number;
+  computedAt: Timestamp;
+}
+
+export interface ConfidenceSource {
+  source: string;
+  score: number;
+  weight: number;
+}
+
+export type ConfidenceGrade = "high" | "medium" | "low" | "insufficient";
+
+export interface ConfidenceModel {
+  id: string;
+  farmId: string;
+  userId: string;
+  overallConfidence: number;
+  uncertainty: number;
+  sources: ConfidenceSource[];
+  grade: ConfidenceGrade;
+  recommendation: string;
+  computedAt: Timestamp;
+}
+
+export interface BenchmarkComparison {
+  metric: string;
+  farmValue: number;
+  districtAvg: number;
+  stateAvg: number;
+  nationalAvg: number;
+  percentile: number;
+  delta: number;
+}
+
+export interface BenchmarkData {
+  id: string;
+  farmId: string;
+  userId: string;
+  comparisons: BenchmarkComparison[];
+  overallPercentile: number;
+  standoutMetric: string;
+  computedAt: Timestamp;
+}
+
+export interface DistrictIntelligence {
+  district: string;
+  state: string;
+  farmCount: number;
+  avgNDVI: number;
+  avgCarbon: number;
+  anomalyRate: number;
+  avgYieldTha: number;
+  dominantCrop: CropType;
+  healthScore: number;
+}
+
+// ──────────────────────────────────────────
 // UI TYPES
 // ──────────────────────────────────────────
 

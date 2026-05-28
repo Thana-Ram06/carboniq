@@ -85,4 +85,10 @@ export const COLLECTIONS = {
   DATA_QUALITY: "data_quality",
   ADMIN_ACTIVITY: "admin_activity",
   USAGE_METRICS: "usage_metrics",
+  // Phase 9 — AI & Scientific Credibility
+  ANOMALY_MODELS: "anomaly_models",
+  CROP_PREDICTIONS: "crop_predictions",
+  YIELD_FORECASTS: "yield_forecasts",
+  FORECAST_HISTORY: "forecast_history",
+  CONFIDENCE_MODELS: "confidence_models",
 } as const;
