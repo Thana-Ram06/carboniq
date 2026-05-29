@@ -2,7 +2,19 @@
 
 import { useMemo } from "react";
 import { MapPin, TrendingUp, AlertTriangle, Leaf, BarChart3 } from "lucide-react";
-import type { Farm, DistrictIntelligence } from "@/types";
+import type { Farm } from "@/types";
+
+interface DistrictIntelligence {
+  district: string;
+  state: string;
+  farmCount: number;
+  avgNDVI: number;
+  avgCarbon: number;
+  anomalyRate: number;
+  avgYieldTha: number;
+  dominantCrop: import("@/types").CropType;
+  healthScore: number;
+}
 import { computeFarmNDVI } from "@/lib/satellite/ndvi-engine";
 import { computeCarbonIntelligence } from "@/lib/intelligence/carbon-intelligence";
 import { detectAnomalies } from "@/lib/ai/anomaly-detector";

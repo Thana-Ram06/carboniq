@@ -12,6 +12,7 @@ import {
   Server, Lock, DollarSign, TrendingUp, GitBranch,
   Flag, Network, FileCheck, Clipboard, Globe2, Rocket, Users2,
   FlaskConical, Settings2, Gauge, Award, Database, HeartPulse,
+  Command, ShieldAlert, Eye, Microscope, Scale, Signal, University,
 } from "lucide-react";
 import { VasudhaLogo, VasudhaIcon } from "@/components/ui/vasudha-logo";
 import { cn } from "@/lib/utils";
@@ -53,6 +54,13 @@ const NAV_ITEMS: Array<{ label: string; href: string; icon: typeof LayoutDashboa
   { label: "Benchmarks",   href: "/benchmarks",    icon: Award },
   { label: "Research",     href: "/research",      icon: Database },
   { label: "Ops Health",   href: "/ops-health",    icon: HeartPulse },
+  { label: "Command",      href: "/command",       icon: Command },
+  { label: "Trust",        href: "/trust",         icon: ShieldAlert },
+  { label: "Transparency", href: "/transparency",  icon: Eye },
+  { label: "Oversight",    href: "/oversight",     icon: Microscope },
+  { label: "Governance",   href: "/governance",    icon: Scale },
+  { label: "Reliability",  href: "/reliability",   icon: Signal },
+  { label: "Institutional",href: "/institutional", icon: University },
   { label: "Pilot",         href: "/pilot",         icon: Building2, roles: ["admin", "org_manager"] },
   { label: "Admin",         href: "/admin",         icon: Shield,    roles: ["admin"] },
 ];

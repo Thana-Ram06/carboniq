@@ -1880,3 +1880,267 @@ export interface ResearchDataset {
   createdAt: string;
   isPublished: boolean;
 }
+
+// ─── Phase 14: National Operations & Trust Layer ─────────────────────────────
+
+// National Command Center
+export interface StateAggregation {
+  state: string;
+  region: "north" | "south" | "east" | "west" | "central" | "northeast";
+  totalFarms: number;
+  activeFarms: number;
+  totalHectares: number;
+  avgNDVI: number;
+  droughtRiskPct: number;
+  carbonTonnesTotal: number;
+  verifiedFarmsPct: number;
+  operationalScore: number;
+  lastSyncAt: string;
+  alertCount: number;
+}
+
+export interface NationalDistrictReport {
+  district: string;
+  state: string;
+  farms: number;
+  ndviAvg: number;
+  ndviTrend: "up" | "down" | "stable";
+  carbonEstimate: number;
+  droughtRisk: "low" | "medium" | "high" | "critical";
+  auditsPending: number;
+  lastUpdated: string;
+}
+
+export interface NationalCommandMetric {
+  label: string;
+  value: string | number;
+  unit: string;
+  trend: number;
+  status: "healthy" | "warning" | "critical";
+}
+
+// Trust & Verification Registry
+export type VerificationStatus = "pending" | "in_review" | "verified" | "rejected" | "revoked";
+
+export interface VerificationRecord {
+  id: string;
+  farmId: string;
+  farmName: string;
+  state: string;
+  auditOrg: string;
+  auditorName: string;
+  submittedAt: string;
+  verifiedAt: string | null;
+  status: VerificationStatus;
+  carbonClaimedTonnes: number;
+  carbonVerifiedTonnes: number | null;
+  confidenceLevel: number;
+  certificateId: string | null;
+  standard: string;
+}
+
+export interface AuditLineage {
+  recordId: string;
+  farmId: string;
+  events: Array<{
+    timestamp: string;
+    actor: string;
+    action: string;
+    detail: string;
+    hash: string;
+  }>;
+}
+
+export interface TransparencyLog {
+  id: string;
+  logType: "verification" | "calibration" | "model_update" | "policy_change" | "data_release";
+  description: string;
+  actor: string;
+  affectedEntities: number;
+  timestamp: string;
+  isPublic: boolean;
+  referenceId: string;
+}
+
+export interface ConfidenceCertification {
+  certId: string;
+  farmId: string;
+  farmName: string;
+  state: string;
+  issuedAt: string;
+  expiresAt: string;
+  ndviConfidence: number;
+  carbonConfidence: number;
+  overallConfidence: number;
+  tier: "platinum" | "gold" | "silver" | "bronze";
+  issuer: string;
+}
+
+// Cross-State Intelligence
+export interface CrossStateNDVITrend {
+  state: string;
+  season: string;
+  ndviQ1: number;
+  ndviQ2: number;
+  ndviQ3: number;
+  ndviQ4: number;
+  yoyChange: number;
+  cropHealthIndex: number;
+}
+
+export interface DroughtRiskAggregation {
+  state: string;
+  district: string;
+  riskLevel: "low" | "medium" | "high" | "critical";
+  affectedHectares: number;
+  affectedFarms: number;
+  precipitationDeficit: number;
+  ndviAnomaly: number;
+  forecastHorizonDays: number;
+  alertIssued: boolean;
+}
+
+export interface CropIntelligence {
+  cropType: string;
+  totalHectares: number;
+  states: number;
+  avgNDVI: number;
+  avgCarbonTha: number;
+  yieldIndexPct: number;
+  healthStatus: "excellent" | "good" | "fair" | "poor";
+  season: string;
+}
+
+// Scientific Oversight
+export type ReviewStatus = "submitted" | "under_review" | "approved" | "revision_requested" | "rejected";
+
+export interface PeerReviewRecord {
+  id: string;
+  title: string;
+  submittedBy: string;
+  reviewedBy: string[];
+  submittedAt: string;
+  deadline: string;
+  status: ReviewStatus;
+  reviewType: "methodology" | "calibration" | "validation" | "report";
+  summary: string;
+  revisionRound: number;
+}
+
+export interface CalibrationApproval {
+  id: string;
+  paramName: string;
+  proposedValue: number;
+  currentValue: number;
+  justification: string;
+  proposedBy: string;
+  reviewedBy: string | null;
+  status: "pending" | "approved" | "rejected";
+  submittedAt: string;
+  resolvedAt: string | null;
+}
+
+export interface MethodologyRevision {
+  id: string;
+  section: string;
+  revision: string;
+  reason: string;
+  approvedBy: string;
+  effectiveDate: string;
+  version: string;
+  impactedModels: string[];
+}
+
+// Governance
+export interface GovernanceLog {
+  id: string;
+  category: "policy" | "access" | "data" | "compliance" | "deployment" | "audit";
+  actor: string;
+  action: string;
+  entityType: string;
+  entityId: string;
+  timestamp: string;
+  outcome: "success" | "failure" | "pending";
+  details: string;
+  ipAddress: string;
+}
+
+export interface OperationalPolicy {
+  id: string;
+  title: string;
+  category: "data_retention" | "access_control" | "audit_frequency" | "verification_sla" | "deployment_gate";
+  description: string;
+  currentValue: string;
+  effectiveDate: string;
+  owner: string;
+  status: "active" | "draft" | "deprecated";
+}
+
+export interface ComplianceTimeline {
+  date: string;
+  event: string;
+  standard: string;
+  status: "completed" | "upcoming" | "overdue";
+  responsible: string;
+}
+
+// Data Reliability Engine
+export interface RegionalConfidence {
+  state: string;
+  ndviConfidence: number;
+  carbonConfidence: number;
+  droughtConfidence: number;
+  overallConfidence: number;
+  sampleDensityPerHectare: number;
+  lastCalibrationDaysAgo: number;
+  reliabilityGrade: ValidationScoreGrade;
+}
+
+export interface ValidationDensity {
+  district: string;
+  state: string;
+  farmCount: number;
+  observationCount: number;
+  observationsPerFarm: number;
+  coveragePct: number;
+  densityScore: number;
+}
+
+export interface DataReliabilityScore {
+  region: string;
+  overallScore: number;
+  dataFreshnessPct: number;
+  validationCoveragePct: number;
+  calibrationCurrencyPct: number;
+  operationalConsistencyPct: number;
+  lastAssessed: string;
+}
+
+// Institutional Partners
+export interface InstitutionalPartner {
+  id: string;
+  name: string;
+  type: "government" | "research" | "ngo" | "multilateral" | "finance";
+  country: string;
+  state: string | null;
+  role: string;
+  joinedAt: string;
+  farmsOverseen: number;
+  workspacesActive: number;
+  governanceLevel: "observer" | "contributor" | "validator" | "governing_body";
+  contactName: string;
+  contactEmail: string;
+}
+
+export interface InstitutionalWorkspace {
+  id: string;
+  partnerId: string;
+  partnerName: string;
+  workspaceName: string;
+  states: string[];
+  farmsManaged: number;
+  activeUsers: number;
+  lastActivityAt: string;
+  dataAccessLevel: "read_only" | "read_write" | "admin";
+  reportsGenerated: number;
+}

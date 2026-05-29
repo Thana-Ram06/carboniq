@@ -45,6 +45,13 @@ const BREADCRUMBS: Record<string, string> = {
   "/benchmarks":   "Scientific Benchmarks",
   "/research":     "Research Datasets",
   "/ops-health":   "Operational Health",
+  "/command":      "National Command Center",
+  "/trust":        "Trust & Verification Registry",
+  "/transparency": "Public Transparency",
+  "/oversight":    "Scientific Oversight",
+  "/governance":   "Governance & Compliance",
+  "/reliability":  "Data Reliability Engine",
+  "/institutional":"Institutional Partner Network",
 };
 
 interface HeaderProps {
