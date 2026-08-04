@@ -66,14 +66,14 @@ export function Footer() {
           {/* Brand */}
           <div className="col-span-2 md:col-span-1">
             <Link href="/" className="flex items-center mb-4 group">
-              <VasudhaLogo height={36} tagline={false} />
+              <VasudhaLogo height={36} mobileHeight={26} tagline={false} />
             </Link>
             <p className="text-xs text-muted-foreground/60 leading-relaxed mb-5">
               Earth Intelligence for a Sustainable Future.
             </p>
             <div className="flex items-center gap-3">
               {[
-                { Icon: Twitter, href: "#" },
+                { Icon: Twitter, href: "https://x.com/anoinv" },
                 { Icon: Github, href: "#" },
                 { Icon: Linkedin, href: "#" },
               ].map(({ Icon, href }, i) => (
